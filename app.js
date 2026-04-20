@@ -51,15 +51,14 @@ function normalizePhone(phone) {
 async function loadSettingsIntoState() {
   const settings = await fetchSettingsFromSupabase()
 
+  console.log('SUPABASE SETTINGS GELEN:', settings)
+
   state.settings = {
     whatsappNumber: normalizePhone(settings?.whatsapp_number || settings?.whatsappNumber || ''),
     brandName: settings?.brand_name || settings?.brandName || 'MK Tur Tourism'
   }
 
-  const titleEl = document.querySelector('h1')
-  if (titleEl && state.settings.brandName) {
-    titleEl.textContent = state.settings.brandName
-  }
+  console.log('STATE SETTINGS SON HAL:', state.settings)
 }
 async function fetchItemsFromSupabase(category, lang = 'tr') {
   const { data, error } = await supabase
