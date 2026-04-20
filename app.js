@@ -336,6 +336,11 @@ function closeModalFn() {
   window.scrollTo({ top: state.savedScrollY, behavior: 'instant' });
 }
 
+function goToWhatsApp(url) {
+  alert(url); // geçici test
+  window.location.href = url;
+}
+
 function openWhatsApp(item) {
   const phone = state.settings?.whatsappNumber;
 
@@ -352,8 +357,7 @@ function openWhatsApp(item) {
   );
 
   const url = `https://wa.me/${phone}?text=${message}`;
-  console.log('WHATSAPP URL:', url);
-  window.open(url, '_blank');
+  goToWhatsApp(url);
 }
 
 document.querySelectorAll('.category-card').forEach((btn) =>
@@ -379,7 +383,10 @@ modalWhatsapp.addEventListener('click', () => {
   if (state.activeItem) openWhatsApp(state.activeItem);
 });
 
-whatsappFloat.addEventListener('click', () => {
+whatsappFloat.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+
   const phone = state.settings?.whatsappNumber;
   if (!phone) {
     console.error('Float için WhatsApp numarası bulunamadı!');
@@ -387,8 +394,7 @@ whatsappFloat.addEventListener('click', () => {
   }
 
   const url = `https://wa.me/${phone}`;
-  console.log('FLOAT URL:', url);
-  window.open(url, '_blank');
+  goToWhatsApp(url);
 });
 
 galleryPrev.addEventListener('click', (e) => {
