@@ -233,8 +233,21 @@ if (typeof modalDeparture !== 'undefined' && modalDeparture) {
 }
 function closeModalFn(){detailModal.classList.add('hidden');detailModal.setAttribute('aria-hidden','true');window.scrollTo({top:state.savedScrollY,behavior:'instant'})}
 function openWhatsApp(item) {
-  const phone = state.settings?.whatsappNumber
-  if (!phone) return
+  let phone = state.settings?.whatsappNumber
+
+  // fallback: eğer state boşsa localStorage dene
+  if (!phone) {
+    try {
+      const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY))
+      phone = stored?.whatsappNumber
+    } catch {}
+  }
+
+  // hala yoksa çık
+  if (!phone) {
+    console.error('WhatsApp numarası bulunamadı!')
+    return
+  }
 
   const itemTitle = item?.title || ''
   const message = encodeURIComponent(
@@ -243,13 +256,28 @@ function openWhatsApp(item) {
       : 'Merhaba, bilgi almak istiyorum.'
   )
 
-  window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
+  const url = `https://wa.me/${phone}?text=${message}`
+  console.log('WHATSAPP URL:', url)
+
+  window.open(url, '_blank')
 }
 
 document.querySelectorAll('.category-card').forEach(btn=>btn.addEventListener('click',()=>selectCategory(btn.dataset.category)));backToCategories.addEventListener('click',()=>{state.activeCategory=null;listSection.classList.add('hidden');categoryGrid.classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})});langSelect.addEventListener('change',e=>setLanguage(e.target.value));closeModal.addEventListener('click',closeModalFn);detailModal.addEventListener('click',e=>{if(e.target===detailModal)closeModalFn()});modalWhatsapp.addEventListener('click',()=>state.activeItem&&openWhatsApp(state.activeItem));whatsappFloat.addEventListener('click', () => {
-  const phone = state.settings?.whatsappNumber
+  let phone = state.settings?.whatsappNumber
+
+  if (!phone) {
+    try {
+      const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY))
+      phone = stored?.whatsappNumber
+    } catch {}
+  }
+
   if (!phone) return
-  window.open(`https://wa.me/${phone}`, '_blank')
+
+  const url = `https://wa.me/${phone}`
+  console.log('FLOAT URL:', url)
+
+  window.open(url, '_blank')
 });galleryPrev.addEventListener('click',e=>{e.stopPropagation();if(state.activeItem) renderGallery(state.activeItem,state.galleryIndex-1)});galleryNext.addEventListener('click',e=>{e.stopPropagation();if(state.activeItem) renderGallery(state.activeItem,state.galleryIndex+1)});modalImage.addEventListener('click', () => {
   lightboxImage.src = modalImage.src;
   lightbox.classList.remove('hidden');
