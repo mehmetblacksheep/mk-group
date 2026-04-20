@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MK Tur Tourism</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <img src="assets/logo.png" alt="MK Tur Tourism logo" class="logo" />
+        <div>
+          <h1>MK Tur Tourism</h1>
+          <p class="subtitle" id="screenSubtitle">Hizmet seçin</p>
+        </div>
+      </div>
+      <select id="langSelect" class="lang-select" aria-label="Dil seçimi">
+        <option value="tr">TR</option>
+        <option value="en">EN</option>
+        <option value="de">DE</option>
+        <option value="ru">RU</option>
+        <option value="ar">AR</option>
+      </select>
+    </header>
+
+    <main>
+      <section class="category-grid" id="categoryGrid">
+        <button class="category-card" data-category="tour">
+          <div class="category-image tour-bg"></div>
+          <div class="category-content">
+            <h2 id="labelTour">Tur</h2>
+            <p id="descTour">Tekne turları, safari ve aktiviteler</p>
+          </div>
+        </button>
+
+        <button class="category-card" data-category="transfer">
+          <div class="category-image transfer-bg"></div>
+          <div class="category-content">
+            <h2 id="labelTransfer">Transfer</h2>
+            <p id="descTransfer">VIP transfer, havaalanı ve araç seçenekleri</p>
+          </div>
+        </button>
+
+        <button class="category-card" data-category="market">
+          <div class="category-image market-bg"></div>
+          <div class="category-content">
+            <h2 id="labelMarket">Market</h2>
+            <p id="descMarket">İçecekler, atıştırmalıklar ve ihtiyaç ürünleri</p>
+          </div>
+        </button>
+      </section>
+
+      <section class="list-section hidden" id="listSection">
+        <div class="list-header">
+          <div>
+            <h2 id="activeCategoryTitle">Tur</h2>
+            <p id="activeCategoryDescription">Aşağıdan seçim yapın</p>
+          </div>
+          <button id="backToCategories" class="secondary-btn">Geri</button>
+        </div>
+
+        <div id="itemList" class="item-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <button class="whatsapp-float" id="whatsappFloat">WhatsApp</button>
+
+  <div class="modal-overlay hidden" id="detailModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="closeModal" aria-label="Kapat">×</button>
+      <div class="modal-layout">
+        <div class="modal-media-wrap">
+          <img id="modalImage" class="modal-image" alt="Detay görseli" />
+          <button class="gallery-nav prev" id="galleryPrev" aria-label="Önceki görsel">‹</button>
+          <button class="gallery-nav next" id="galleryNext" aria-label="Sonraki görsel">›</button>
+          <div class="gallery-dots" id="galleryDots"></div>
+        </div>
+        <div class="lightbox hidden" id="lightbox">
+          <button class="lightbox-close" id="closeLightbox" aria-label="Kapat">×</button>
+          <img id="lightboxImage" class="lightbox-image" alt="Büyük görsel" />
+        </div>
+        <div class="modal-content">
+          <h3 id="modalTitle"></h3>
+          <p id="modalDescription" class="modal-description"></p>
+          <div id="modalMeta" class="meta-list"></div>
+          <div class="price-row">
+            <span id="modalPrice" class="price-badge"></span>
+          </div>
+          <button id="modalWhatsapp" class="primary-btn">WhatsApp ile iletişime geç</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
