@@ -6,6 +6,8 @@ const SUPABASE_KEY = 'sb_publishable_MRfDEp6ZDZUo7rXpLoRK4A_SL-9PAPd';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const placeholder = 'assets/logo.png';
+const WHATSAPP_NUMBER = '905349172414';
+const BRAND_NAME = 'MK Tur Tourism';
 
 const translations = {
   tr: {
@@ -87,8 +89,8 @@ const state = {
   savedScrollY: 0,
   galleryIndex: 0,
   settings: {
-    whatsappNumber: '',
-    brandName: 'MK Tur Tourism'
+    whatsappNumber: WHATSAPP_NUMBER,
+    brandName: BRAND_NAME
   }
 };
 
@@ -119,10 +121,6 @@ const closeLightbox = document.getElementById('closeLightbox');
 
 const whatsappFloat = document.getElementById('whatsappFloat');
 
-function normalizePhone(phone) {
-  return String(phone || '').replace(/\D/g, '');
-}
-
 function pickLangValue(row, base, lang = 'tr') {
   const direct = row[`${base}_${lang}`];
   const fallback = row[`${base}_tr`];
@@ -145,37 +143,6 @@ function mapSupabaseItem(row, lang = 'tr') {
   };
 }
 
-async function fetchSettingsFromSupabase() {
-  const { data, error } = await supabase
-    .from('settings')
-    .select('*')
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error('settings çekilemedi:', error);
-    return null;
-  }
-
-  return data;
-}
-
-async function loadSettingsIntoState() {
-  const settings = await fetchSettingsFromSupabase();
-
-  state.settings = {
-    whatsappNumber: normalizePhone(settings?.whatsapp_number || ''),
-    brandName: settings?.brand_name || 'MK Tur Tourism'
-  };
-
-  const titleEl = document.querySelector('h1');
-  if (titleEl && state.settings.brandName) {
-    titleEl.textContent = state.settings.brandName;
-  }
-
-  console.log('STATE SETTINGS:', state.settings);
-}
-
 async function fetchItemsFromSupabase(category, lang = 'tr') {
   const { data, error } = await supabase
     .from('items')
@@ -194,6 +161,13 @@ async function fetchItemsFromSupabase(category, lang = 'tr') {
 
 async function getCategoryItems(category, lang = 'tr') {
   return await fetchItemsFromSupabase(category, lang);
+}
+
+function applyBrandName() {
+  const titleEl = document.querySelector('h1');
+  if (titleEl) {
+    titleEl.textContent = state.settings.brandName;
+  }
 }
 
 function setLanguage(lang) {
@@ -337,17 +311,11 @@ function closeModalFn() {
 }
 
 function goToWhatsApp(url) {
-  alert(url); // geçici test
   window.location.href = url;
 }
 
 function openWhatsApp(item) {
-  const phone = state.settings?.whatsappNumber;
-
-  if (!phone) {
-    console.error('WhatsApp numarası bulunamadı!');
-    return;
-  }
+  const phone = WHATSAPP_NUMBER;
 
   const itemTitle = item?.title || '';
   const message = encodeURIComponent(
@@ -386,15 +354,7 @@ modalWhatsapp.addEventListener('click', () => {
 whatsappFloat.addEventListener('click', (e) => {
   e.preventDefault();
   e.stopPropagation();
-
-  const phone = state.settings?.whatsappNumber;
-  if (!phone) {
-    console.error('Float için WhatsApp numarası bulunamadı!');
-    return;
-  }
-
-  const url = `https://wa.me/${phone}`;
-  goToWhatsApp(url);
+  goToWhatsApp(`https://wa.me/${WHATSAPP_NUMBER}`);
 });
 
 galleryPrev.addEventListener('click', (e) => {
@@ -426,7 +386,7 @@ closeLightbox.addEventListener('click', () => {
 });
 
 async function init() {
-  await loadSettingsIntoState();
+  applyBrandName();
   setLanguage('tr');
 }
 
