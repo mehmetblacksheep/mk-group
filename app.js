@@ -347,15 +347,6 @@ detailModal.addEventListener('click', (e) => {
   if (e.target === detailModal) closeModalFn();
 });
 
-modalWhatsapp.addEventListener('click', () => {
-  if (state.activeItem) openWhatsApp(state.activeItem);
-});
-
-whatsappFloat.addEventListener('click', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  goToWhatsApp(`https://wa.me/${WHATSAPP_NUMBER}`);
-});
 
 galleryPrev.addEventListener('click', (e) => {
   e.stopPropagation();
