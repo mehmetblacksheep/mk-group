@@ -44,6 +44,10 @@ function normalizePhone(phone) {
   return String(phone || '').replace(/\D/g, '')
 }
 
+function normalizePhone(phone) {
+  return String(phone || '').replace(/\D/g, '')
+}
+
 async function loadSettingsIntoState() {
   const settings = await fetchSettingsFromSupabase()
 
@@ -98,7 +102,7 @@ function getSettings() {
   return state.settings || {
     whatsappNumber: '',
     brandName: 'MK Tur Tourism'
-  };
+  }
 }
 function getData(){try{const stored=JSON.parse(localStorage.getItem(STORAGE_KEY));if(!stored||!Array.isArray(stored)) throw new Error('no data');return {tour:stored.filter(i=>i.category==='tour'&&i.active).sort((a,b)=>a.order-b.order),transfer:stored.filter(i=>i.category==='transfer'&&i.active).sort((a,b)=>a.order-b.order),market:stored.filter(i=>i.category==='market'&&i.active).sort((a,b)=>a.order-b.order)}}catch{return fallbackData}}
 function setLanguage(lang){state.lang=lang;if (state.activeCategory) {
@@ -230,21 +234,19 @@ if (typeof modalDeparture !== 'undefined' && modalDeparture) {
 }
 function closeModalFn(){detailModal.classList.add('hidden');detailModal.setAttribute('aria-hidden','true');window.scrollTo({top:state.savedScrollY,behavior:'instant'})}
 function openWhatsApp(item) {
-  const phone = state.settings?.whatsappNumber;
-  if (!phone) return;
+  const phone = state.settings?.whatsappNumber
+  if (!phone) return
 
-  const itemTitle = item?.title || '';
+  const itemTitle = item?.title || ''
   const message = encodeURIComponent(
     itemTitle
       ? `Merhaba, ${itemTitle} hakkında bilgi almak istiyorum.`
       : 'Merhaba, bilgi almak istiyorum.'
-  );
+  )
 
-  window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+  window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
 }
 
-  window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-}
 document.querySelectorAll('.category-card').forEach(btn=>btn.addEventListener('click',()=>selectCategory(btn.dataset.category)));backToCategories.addEventListener('click',()=>{state.activeCategory=null;listSection.classList.add('hidden');categoryGrid.classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})});langSelect.addEventListener('change',e=>setLanguage(e.target.value));closeModal.addEventListener('click',closeModalFn);detailModal.addEventListener('click',e=>{if(e.target===detailModal)closeModalFn()});modalWhatsapp.addEventListener('click',()=>state.activeItem&&openWhatsApp(state.activeItem));whatsappFloat.addEventListener('click', () => {
   const phone = state.settings?.whatsappNumber
   if (!phone) return
