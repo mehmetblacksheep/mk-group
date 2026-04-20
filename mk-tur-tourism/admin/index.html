@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MK Tur Tourism Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css" />
+</head>
+<body>
+  <div class="admin-shell">
+    <section class="login-card" id="loginCard">
+      <div class="login-top">
+        <img src="/assets/logo.png" alt="MK Tur Tourism logo" class="logo" />
+        <div>
+          <h1>MK Tur Tourism Admin</h1>
+          <p class="muted">İçerikleri yönet, sıraları değiştir, WhatsApp numarasını güncelle.</p>
+        </div>
+      </div>
+      <div class="login-grid">
+        <label>
+          <span>Kullanıcı adı</span>
+          <input id="loginUsername" type="text" placeholder="admin" />
+        </label>
+        <label>
+          <span>Şifre</span>
+          <input id="loginPassword" type="password" placeholder="123456" />
+        </label>
+      </div>
+      <div class="login-actions">
+        <button id="loginBtn" class="primary-btn">Giriş yap</button>
+        <p class="muted small">Demo giriş: <strong>admin / 123456</strong></p>
+      </div>
+      <p id="loginError" class="error hidden">Kullanıcı adı veya şifre hatalı.</p>
+    </section>
+
+    <section class="dashboard hidden" id="dashboard">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <img src="/assets/logo.png" alt="MK Tur Tourism logo" class="logo small-logo" />
+          <div>
+            <h2>MK Tur Tourism</h2>
+            <p class="muted">Admin panel</p>
+          </div>
+        </div>
+        <nav class="side-nav">
+          <button class="nav-btn active" data-view="content">İçerikler</button>
+          <button class="nav-btn" data-view="settings">Genel Ayarlar</button>
+        </nav>
+        <button id="logoutBtn" class="secondary-btn full-width">Çıkış</button>
+      </aside>
+
+      <main class="main-panel">
+        <header class="panel-header">
+          <div>
+            <h1 id="panelTitle">İçerik Yönetimi</h1>
+            <p class="muted">Tur, transfer ve market içeriklerini tek panelden düzenle.</p>
+          </div>
+          <button id="openNewItem" class="primary-btn">Yeni içerik ekle</button>
+        </header>
+
+        <section id="contentView">
+          <div class="toolbar">
+            <div class="tabs">
+              <button class="tab-btn active" data-category="all">Tümü</button>
+              <button class="tab-btn" data-category="tour">Tur</button>
+              <button class="tab-btn" data-category="transfer">Transfer</button>
+              <button class="tab-btn" data-category="market">Market</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sıra</th>
+                  <th>Kategori</th>
+                  <th>Başlık</th>
+                  <th>Fiyat</th>
+                  <th>Durum</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="contentTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="settingsView" class="hidden">
+          <div class="settings-card">
+            <h3>Genel Ayarlar</h3>
+            <div class="field-grid single">
+              <label>
+                <span>WhatsApp numarası</span>
+                <input id="whatsappNumber" type="text" placeholder="905555555555" />
+              </label>
+              <label>
+                <span>Marka adı</span>
+                <input id="brandName" type="text" placeholder="MK Tur Tourism" />
+              </label>
+            </div>
+            <button id="saveSettings" class="primary-btn">Ayarları kaydet</button>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+<button id="closeModal" class="close-modal">×</button>
+  <div class="modal-overlay hidden" id="editorModal">
+    <div class="editor-card">
+      <div class="editor-header">
+        <h3 id="editorTitle">Yeni içerik</h3>
+        <button id="closeEditor" class="icon-btn">×</button>
+      </div>
+      <div class="editor-body"><div class="editor-grid">
+        <label>
+          <span>Kategori</span>
+          <select id="itemCategory">
+            <option value="tour">Tur</option>
+            <option value="transfer">Transfer</option>
+            <option value="market">Market</option>
+          </select>
+        </label>
+        <label>
+          <span>Sıra</span>
+          <input id="itemOrder" type="number" min="1" />
+        </label>
+        <div class="form-group">
+  <label for="editorLang">Düzenleme dili</label>
+  <select id="editorLang">
+    <option value="tr">Türkçe</option>
+    <option value="en">English</option>
+    <option value="de">Deutsch</option>
+    <option value="ru">Русский</option>
+    <option value="ar">العربية</option>
+  </select>
+</div>
+        <label>
+          <span>Başlık</span>
+          <input id="itemTitle" type="text" />
+        </label>
+        <label>
+          <span>Kısa açıklama</span>
+          <input id="itemShort" type="text" />
+        </label>
+        <label class="full-row">
+          <span>Detay açıklama</span>
+          <textarea id="itemDesc" rows="5"></textarea>
+        </label>
+        <label>
+          <span>Fiyat</span>
+          <input id="itemPrice" type="text" placeholder="40€" />
+        </label>
+        <label>
+          <span>Süre / kısa bilgi</span>
+          <input id="itemDuration" type="text" placeholder="6 saat" />
+        </label>
+        <div class="full-row upload-section">
+          <div class="upload-head">
+            <div>
+              <span class="upload-title">Görseller</span>
+              <p class="muted small">Maksimum 3 görsel yükleyebilirsin. İlk görsel ana görsel olur.</p>
+            </div>
+            <label class="upload-btn">
+              <input id="itemImages" type="file" accept="image/*" multiple />
+              Görsel seç
+            </label>
+          </div>
+          <div id="uploadError" class="error hidden"></div>
+          <div id="imagePreviewGrid" class="preview-grid"></div>
+        </div>
+        <label class="toggle-row full-row">
+          <input id="itemActive" type="checkbox" checked />
+          <span>Aktif içerik</span>
+        </label>
+      </div></div>
+      <div class="editor-actions">
+        <button id="deleteItem" class="danger-btn hidden">Sil</button>
+        <div class="action-right">
+          <button id="cancelEditor" class="secondary-btn">Vazgeç</button>
+          <button id="saveItem" class="primary-btn">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/admin/admin.js"></script>
+</body>
+</html>
