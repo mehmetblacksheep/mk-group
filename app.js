@@ -281,17 +281,9 @@ function openModal(item) {
   if (modalMeta) {
     const chips = [];
 
-    if (item?.duration) {
-      chips.push(`<span class="meta-chip">${item.duration}</span>`);
-    }
-
-    if (item?.peopleCount) {
-      chips.push(`<span class="meta-chip">${item.peopleCount}</span>`);
-    }
-
-    if (item?.departureTime) {
-      chips.push(`<span class="meta-chip">${item.departureTime}</span>`);
-    }
+    if (item?.duration) chips.push(`<span class="meta-chip">${item.duration}</span>`);
+    if (item?.peopleCount) chips.push(`<span class="meta-chip">${item.peopleCount}</span>`);
+    if (item?.departureTime) chips.push(`<span class="meta-chip">${item.departureTime}</span>`);
 
     modalMeta.innerHTML = chips.join('');
   }
@@ -310,6 +302,13 @@ function closeModalFn() {
   window.scrollTo({ top: state.savedScrollY, behavior: 'instant' });
 }
 
+function goToWhatsApp(url) {
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function openWhatsApp() {
+  goToWhatsApp(`https://wa.me/${WHATSAPP_NUMBER}`);
+}
 
 document.querySelectorAll('.category-card').forEach((btn) =>
   btn.addEventListener('click', () => selectCategory(btn.dataset.category))
@@ -330,6 +329,17 @@ detailModal.addEventListener('click', (e) => {
   if (e.target === detailModal) closeModalFn();
 });
 
+modalWhatsapp.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  openWhatsApp();
+});
+
+whatsappFloat.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  openWhatsApp();
+});
 
 galleryPrev.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -359,9 +369,9 @@ closeLightbox.addEventListener('click', () => {
   closeModal.classList.remove('hidden');
 });
 
-async function init() {
+function init() {
   applyBrandName();
   setLanguage('tr');
 }
 
-void init();
+init();

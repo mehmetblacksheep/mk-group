@@ -27,7 +27,7 @@
 
     <main>
       <section class="category-grid" id="categoryGrid">
-        <button class="category-card" data-category="tour">
+        <button class="category-card" data-category="tour" type="button">
           <div class="category-image tour-bg"></div>
           <div class="category-content">
             <h2 id="labelTour">Tur</h2>
@@ -35,7 +35,7 @@
           </div>
         </button>
 
-        <button class="category-card" data-category="transfer">
+        <button class="category-card" data-category="transfer" type="button">
           <div class="category-image transfer-bg"></div>
           <div class="category-content">
             <h2 id="labelTransfer">Transfer</h2>
@@ -43,7 +43,7 @@
           </div>
         </button>
 
-        <button class="category-card" data-category="market">
+        <button class="category-card" data-category="market" type="button">
           <div class="category-image market-bg"></div>
           <div class="category-content">
             <h2 id="labelMarket">Market</h2>
@@ -58,7 +58,7 @@
             <h2 id="activeCategoryTitle">Tur</h2>
             <p id="activeCategoryDescription">Aşağıdan seçim yapın</p>
           </div>
-          <button id="backToCategories" class="secondary-btn">Geri</button>
+          <button id="backToCategories" class="secondary-btn" type="button">Geri</button>
         </div>
 
         <div id="itemList" class="item-list"></div>
@@ -66,28 +66,24 @@
     </main>
   </div>
 
-  <a
-  class="whatsapp-float"
-  id="whatsappFloat"
-  href="https://api.whatsapp.com/send?phone=905349172414"
-  target="_blank"
-  rel="noopener noreferrer"
->WhatsApp</a>
+  <button class="whatsapp-float" id="whatsappFloat" type="button">WhatsApp</button>
 
   <div class="modal-overlay hidden" id="detailModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <button class="modal-close" id="closeModal" aria-label="Kapat">×</button>
+      <button class="modal-close" id="closeModal" aria-label="Kapat" type="button">×</button>
       <div class="modal-layout">
         <div class="modal-media-wrap">
           <img id="modalImage" class="modal-image" alt="Detay görseli" />
-          <button class="gallery-nav prev" id="galleryPrev" aria-label="Önceki görsel">‹</button>
-          <button class="gallery-nav next" id="galleryNext" aria-label="Sonraki görsel">›</button>
+          <button class="gallery-nav prev" id="galleryPrev" aria-label="Önceki görsel" type="button">‹</button>
+          <button class="gallery-nav next" id="galleryNext" aria-label="Sonraki görsel" type="button">›</button>
           <div class="gallery-dots" id="galleryDots"></div>
         </div>
+
         <div class="lightbox hidden" id="lightbox">
-          <button class="lightbox-close" id="closeLightbox" aria-label="Kapat">×</button>
+          <button class="lightbox-close" id="closeLightbox" aria-label="Kapat" type="button">×</button>
           <img id="lightboxImage" class="lightbox-image" alt="Büyük görsel" />
         </div>
+
         <div class="modal-content">
           <h3 id="modalTitle"></h3>
           <p id="modalDescription" class="modal-description"></p>
@@ -95,13 +91,7 @@
           <div class="price-row">
             <span id="modalPrice" class="price-badge"></span>
           </div>
-          <a
-  id="modalWhatsapp"
-  class="primary-btn"
-  href="https://api.whatsapp.com/send?phone=905349172414"
-  target="_blank"
-  rel="noopener noreferrer"
->WhatsApp ile iletişime geç</a>
+          <button id="modalWhatsapp" class="primary-btn" type="button">WhatsApp ile iletişime geç</button>
         </div>
       </div>
     </div>
