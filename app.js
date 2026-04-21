@@ -314,18 +314,8 @@ function goToWhatsApp(url) {
   window.location.href = url;
 }
 
-function openWhatsApp(item) {
-  const phone = WHATSAPP_NUMBER;
-
-  const itemTitle = item?.title || '';
-  const message = encodeURIComponent(
-    itemTitle
-      ? `Merhaba, ${itemTitle} hakkında bilgi almak istiyorum.`
-      : 'Merhaba, bilgi almak istiyorum.'
-  );
-
-  const url = `https://wa.me/${phone}?text=${message}`;
-  goToWhatsApp(url);
+function openWhatsApp() {
+  goToWhatsApp(`https://wa.me/${WHATSAPP_NUMBER}`);
 }
 
 document.querySelectorAll('.category-card').forEach((btn) =>
@@ -347,6 +337,17 @@ detailModal.addEventListener('click', (e) => {
   if (e.target === detailModal) closeModalFn();
 });
 
+modalWhatsapp.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  goToWhatsApp(`https://wa.me/${WHATSAPP_NUMBER}`);
+});
+
+whatsappFloat.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  goToWhatsApp(`https://wa.me/${WHATSAPP_NUMBER}`);
+});
 
 galleryPrev.addEventListener('click', (e) => {
   e.stopPropagation();
