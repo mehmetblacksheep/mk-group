@@ -121,6 +121,21 @@ const closeLightbox = document.getElementById('closeLightbox');
 
 const whatsappFloat = document.getElementById('whatsappFloat');
 
+function buildWhatsAppUrl(message = '') {
+  const base = `https://wa.me/${WHATSAPP_NUMBER}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}
+
+function applyWhatsAppLinks(item = null) {
+  const defaultText = 'Merhaba, bilgi almak istiyorum.';
+  const itemText = item?.title
+    ? `Merhaba, ${item.title} hakkında bilgi almak istiyorum.`
+    : defaultText;
+
+  whatsappFloat.href = buildWhatsAppUrl();
+  modalWhatsapp.href = buildWhatsAppUrl(itemText);
+}
+
 function pickLangValue(row, base, lang = 'tr') {
   const direct = row[`${base}_${lang}`];
   const fallback = row[`${base}_tr`];
@@ -288,6 +303,7 @@ function openModal(item) {
     modalMeta.innerHTML = chips.join('');
   }
 
+  applyWhatsAppLinks(item);
   renderGallery(item, 0);
 
   detailModal.classList.remove('hidden');
@@ -300,14 +316,6 @@ function closeModalFn() {
   detailModal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('modal-open');
   window.scrollTo({ top: state.savedScrollY, behavior: 'instant' });
-}
-
-function goToWhatsApp(url) {
-  window.open(url, '_blank', 'noopener,noreferrer');
-}
-
-function openWhatsApp() {
-  goToWhatsApp(`https://wa.me/${WHATSAPP_NUMBER}`);
 }
 
 document.querySelectorAll('.category-card').forEach((btn) =>
@@ -327,18 +335,6 @@ closeModal.addEventListener('click', closeModalFn);
 
 detailModal.addEventListener('click', (e) => {
   if (e.target === detailModal) closeModalFn();
-});
-
-modalWhatsapp.addEventListener('click', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  openWhatsApp();
-});
-
-whatsappFloat.addEventListener('click', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  openWhatsApp();
 });
 
 galleryPrev.addEventListener('click', (e) => {
@@ -371,6 +367,7 @@ closeLightbox.addEventListener('click', () => {
 
 function init() {
   applyBrandName();
+  applyWhatsAppLinks();
   setLanguage('tr');
 }
 

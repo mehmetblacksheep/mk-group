@@ -373,10 +373,21 @@ h1 { margin: 0 0 4px; font-size: 28px; }
   font-weight: 700;
 }
 
+#modalWhatsapp,
+#whatsappFloat,
+.whatsapp-float {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
 #modalWhatsapp:hover,
 #whatsappFloat:hover,
 .whatsapp-float:hover {
   background: #1ebe5d !important;
+
 }
 
 @media (max-width: 860px) {
