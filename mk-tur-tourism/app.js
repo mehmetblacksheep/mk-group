@@ -7,7 +7,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const placeholder = 'assets/logo.png';
 const WHATSAPP_NUMBER = '905349172414';
-const BRAND_NAME = 'MK Tur Tourism';
+const BRAND_NAME = 'MK Group';
+const BRAND_SUBTITLE = 'Local Services';
 
 const translations = {
   tr: {
@@ -87,7 +88,11 @@ const state = {
   activeCategory: null,
   activeItem: null,
   savedScrollY: 0,
-  galleryIndex: 0
+  galleryIndex: 0,
+  settings: {
+    whatsappNumber: WHATSAPP_NUMBER,
+    brandName: BRAND_NAME
+  }
 };
 
 const categoryGrid = document.getElementById('categoryGrid');
@@ -118,7 +123,7 @@ const closeLightbox = document.getElementById('closeLightbox');
 const whatsappFloat = document.getElementById('whatsappFloat');
 
 function buildWhatsAppUrl(message = '') {
-  const phone = WHATSAPP_NUMBER.replace(/\D/g, '');
+  const phone = state.settings.whatsappNumber.replace(/\D/g, '') || WHATSAPP_NUMBER;
   const base = `https://wa.me/${phone}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
@@ -180,10 +185,41 @@ async function getCategoryItems(category, lang = 'tr') {
   return await fetchItemsFromSupabase(category, lang);
 }
 
+async function fetchSettingsFromSupabase() {
+  const { data, error } = await supabase
+    .from('settings')
+    .select('whatsapp_number, brand_name')
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Ayarlar cekilemedi:', error);
+    return null;
+  }
+
+  return data;
+}
+
+async function loadSettings() {
+  const settings = await fetchSettingsFromSupabase();
+
+  if (!settings) return;
+
+  state.settings = {
+    whatsappNumber: settings.whatsapp_number || WHATSAPP_NUMBER,
+    brandName: settings.brand_name || BRAND_NAME
+  };
+}
+
 function applyBrandName() {
   const titleEl = document.querySelector('h1');
   if (titleEl) {
-    titleEl.textContent = BRAND_NAME;
+    titleEl.textContent = state.settings.brandName;
+  }
+
+  const subtitleEl = document.getElementById('screenSubtitle');
+  if (subtitleEl && !state.activeCategory) {
+    subtitleEl.textContent = BRAND_SUBTITLE;
   }
 }
 
@@ -195,7 +231,7 @@ function setLanguage(lang) {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-  document.getElementById('screenSubtitle').textContent = t.subtitle;
+  updateScreenSubtitle();
   document.getElementById('labelTour').textContent = t.tour;
   document.getElementById('labelTransfer').textContent = t.transfer;
   document.getElementById('labelMarket').textContent = t.market;
@@ -258,6 +294,7 @@ async function selectCategory(category) {
 
   categoryGrid.classList.add('hidden');
   listSection.classList.remove('hidden');
+  updateScreenSubtitle();
 
   const items = await getCategoryItems(category, state.lang);
 
@@ -314,6 +351,15 @@ function openModal(item) {
   document.body.classList.add('modal-open');
 }
 
+function updateScreenSubtitle() {
+  const subtitleEl = document.getElementById('screenSubtitle');
+  if (!subtitleEl) return;
+
+  subtitleEl.textContent = state.activeCategory
+    ? translations[state.lang].listHelp
+    : BRAND_SUBTITLE;
+}
+
 function closeModalFn() {
   detailModal.classList.add('hidden');
   detailModal.setAttribute('aria-hidden', 'true');
@@ -329,6 +375,7 @@ backToCategories.addEventListener('click', () => {
   state.activeCategory = null;
   listSection.classList.add('hidden');
   categoryGrid.classList.remove('hidden');
+  updateScreenSubtitle();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
@@ -378,10 +425,11 @@ closeLightbox.addEventListener('click', () => {
   closeModal.classList.remove('hidden');
 });
 
-function init() {
+async function init() {
+  await loadSettings();
   applyBrandName();
   applyWhatsAppLinks();
   setLanguage('tr');
 }
 
-init();
+void init();

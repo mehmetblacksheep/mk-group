@@ -8,6 +8,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 const SESSION_KEY = 'mk_tur_tourism_admin_session'
 const fallbackImage = '../assets/logo.png'
+const DEFAULT_BRAND_NAME = 'MK Group'
+const LANGUAGES = [
+  { code: 'tr', label: 'TR' },
+  { code: 'en', label: 'EN' },
+  { code: 'de', label: 'DE' },
+  { code: 'ru', label: 'RU' },
+  { code: 'ar', label: 'AR' },
+]
 
 const loginCard = document.getElementById('loginCard')
 const dashboard = document.getElementById('dashboard')
@@ -57,10 +65,49 @@ const state = {
   settingsId: null,
   editorLang: 'tr',
   translations: null,
+  isSavingItem: false,
 }
 
 function categoryLabel(category) {
   return ({ tour: 'Tur', transfer: 'Transfer', market: 'Market' })[category] || category
+}
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function hasTranslationContent(content = {}) {
+  return Boolean(content.title?.trim() || content.short?.trim() || content.desc?.trim())
+}
+
+function languageContentFromItem(item, lang) {
+  return {
+    title: item[`title_${lang}`] || '',
+    short: item[`short_desc_${lang}`] || '',
+    desc: item[`detail_desc_${lang}`] || '',
+  }
+}
+
+function missingLanguageLabels(translations = {}) {
+  return LANGUAGES
+    .filter(({ code }) => code !== 'tr' && !hasTranslationContent(translations[code]))
+    .map(({ label }) => label)
+}
+
+function renderLanguageBadges(item) {
+  return `
+    <div class="language-badges" aria-label="Dil doluluk durumu">
+      ${LANGUAGES.map(({ code, label }) => {
+        const complete = hasTranslationContent(languageContentFromItem(item, code))
+        return `<span class="language-badge ${complete ? 'complete' : 'missing'}">${label}</span>`
+      }).join('')}
+    </div>
+  `
 }
 
 function mapDbItem(row) {
@@ -163,6 +210,29 @@ function setTranslateStatus(message = '', type = 'info') {
   translateStatus.classList.toggle('hidden', !message)
 }
 
+function setItemSaving(isSaving) {
+  state.isSavingItem = isSaving
+  saveItemBtn.disabled = isSaving
+  cancelEditor.disabled = isSaving
+  closeEditor.disabled = isSaving
+  if (translateFromTurkishBtn) translateFromTurkishBtn.disabled = isSaving
+  saveItemBtn.textContent = isSaving ? 'Kaydediliyor...' : 'Kaydet'
+}
+
+function getFriendlyTranslateError(message = '') {
+  const lowerMessage = message.toLowerCase()
+
+  if (lowerMessage.includes('quota') || lowerMessage.includes('billing')) {
+    return 'Otomatik ceviri icin OpenAI API kredisi veya odeme yontemi gerekiyor. Simdilik dilleri manuel doldurabilirsin.'
+  }
+
+  if (lowerMessage.includes('openai_api_key')) {
+    return 'Otomatik ceviri icin Vercel OPENAI_API_KEY ayari eksik.'
+  }
+
+  return message || 'Ceviri sirasinda hata olustu.'
+}
+
 async function translateFromTurkish() {
   syncCurrentLanguageInputsToState()
 
@@ -218,8 +288,9 @@ async function translateFromTurkish() {
     setTranslateStatus('Ceviri hazir. Dilleri kontrol edip kaydedebilirsin.', 'success')
   } catch (err) {
     console.error('Ceviri hatasi:', err)
-    setTranslateStatus(err.message || 'Ceviri sirasinda hata olustu.', 'error')
-    alert(`Ceviri sirasinda hata olustu: ${err.message}`)
+    const friendlyMessage = getFriendlyTranslateError(err.message)
+    setTranslateStatus(friendlyMessage, 'error')
+    alert(friendlyMessage)
   } finally {
     if (translateFromTurkishBtn) translateFromTurkishBtn.disabled = false
   }
@@ -247,10 +318,10 @@ async function getSettings() {
 
   if (error) {
     console.error('Ayarlar çekilemedi:', error)
-    return { id: null, whatsapp_number: '', brand_name: 'MK Tur Tourism' }
+    return { id: null, whatsapp_number: '', brand_name: DEFAULT_BRAND_NAME }
   }
 
-  return data || { id: null, whatsapp_number: '', brand_name: 'MK Tur Tourism' }
+  return data || { id: null, whatsapp_number: '', brand_name: DEFAULT_BRAND_NAME }
 }
 
 async function renderTable() {
@@ -265,17 +336,19 @@ async function renderTable() {
       <td>${categoryLabel(item.category)}</td>
       <td>
         <div class="table-title-cell">
-          <img src="${(item.gallery && item.gallery[0]) || item.image || fallbackImage}" alt="${item.title}" class="table-thumb" />
+          <img src="${escapeHtml((item.gallery && item.gallery[0]) || item.image || fallbackImage)}" alt="${escapeHtml(item.title)}" class="table-thumb" />
           <div>
-            <strong>${item.title}</strong><br>
-            <span class="muted small">${item.short || ''}</span>
+            <strong>${escapeHtml(item.title)}</strong><br>
+            <span class="muted small">${escapeHtml(item.short || '')}</span>
+            ${renderLanguageBadges(item)}
           </div>
         </div>
       </td>
-      <td>${item.price || '-'}</td>
+      <td>${escapeHtml(item.price || '-')}</td>
       <td><span class="status-pill ${item.active ? 'active' : 'passive'}">${item.active ? 'Aktif' : 'Pasif'}</span></td>
       <td>
         <div class="row-actions">
+          <button class="mini-btn" data-action="toggle-active" data-id="${item.id}">${item.active ? 'Pasife al' : 'Aktif yap'}</button>
           <button class="mini-btn" data-action="edit" data-id="${item.id}">Düzenle</button>
           <button class="mini-btn" data-action="up" data-id="${item.id}">↑</button>
           <button class="mini-btn" data-action="down" data-id="${item.id}">↓</button>
@@ -301,6 +374,12 @@ async function handleRowAction(action, id) {
     return
   }
 
+  if (action === 'toggle-active') {
+    await toggleItemActive(current)
+    await renderTable()
+    return
+  }
+
   const sameCategory = content
     .filter(item => item.category === current.category)
     .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
@@ -319,6 +398,18 @@ async function handleRowAction(action, id) {
   }
 
   await renderTable()
+}
+
+async function toggleItemActive(item) {
+  const { error } = await supabase
+    .from('items')
+    .update({ is_active: !item.active })
+    .eq('id', item.id)
+
+  if (error) {
+    console.error('Durum guncellenemedi:', error)
+    alert(`Durum guncellenemedi: ${error.message}`)
+  }
 }
 
 async function swapItemOrders(a, b) {
@@ -462,6 +553,8 @@ async function openEditor(item = null) {
 }
 
 function closeEditorModal() {
+  if (state.isSavingItem) return
+
   editorModal.classList.add('hidden')
   state.editingId = null
   state.gallery = [fallbackImage]
@@ -472,6 +565,8 @@ function closeEditorModal() {
 }
 
 async function upsertItem() {
+  if (state.isSavingItem) return
+
   syncCurrentLanguageInputsToState()
 
   const gallery = (state.gallery || []).filter(Boolean).slice(0, 3)
@@ -510,6 +605,17 @@ async function upsertItem() {
     return
   }
 
+  const missingLanguages = missingLanguageLabels(state.translations)
+  if (missingLanguages.length) {
+    const shouldContinue = confirm(
+      `Bazi dil alanlari bos: ${missingLanguages.join(', ')}. Yine de kaydedilsin mi?`
+    )
+
+    if (!shouldContinue) return
+  }
+
+  setItemSaving(true)
+
   const request = state.editingId
     ? supabase.from('items').update(payload).eq('id', itemId)
     : supabase.from('items').insert({ id: itemId, ...payload })
@@ -517,12 +623,14 @@ async function upsertItem() {
   const { error } = await request
 
   if (error) {
+    setItemSaving(false)
     console.error('Kayıt hatası:', error)
     alert(`Kayıt sırasında hata oluştu: ${error.message}`)
     return
   }
 
   await renderTable()
+  setItemSaving(false)
   closeEditorModal()
 }
 
@@ -548,19 +656,21 @@ async function renderSettings() {
   const settings = await getSettings()
   state.settingsId = settings.id || null
   whatsappNumberInput.value = settings.whatsapp_number || ''
-  brandNameInput.value = settings.brand_name || 'MK Tur Tourism'
+  brandNameInput.value = settings.brand_name || DEFAULT_BRAND_NAME
 }
 
 async function saveSettingsFromForm() {
   const current = await getSettings()
+  const payload = {
+    whatsapp_number: whatsappNumberInput.value.trim(),
+    brand_name: brandNameInput.value.trim() || DEFAULT_BRAND_NAME,
+    updated_at: new Date().toISOString(),
+  }
 
   if (!current?.id) {
     const { error } = await supabase
       .from('settings')
-      .insert({
-        whatsapp_number: whatsappNumberInput.value.trim(),
-        brand_name: brandNameInput.value.trim() || 'MK Tur Tourism',
-      })
+      .insert(payload)
 
     if (error) {
       console.error('Ayar kaydetme hatası:', error)
@@ -570,10 +680,7 @@ async function saveSettingsFromForm() {
   } else {
     const { error } = await supabase
       .from('settings')
-      .update({
-        whatsapp_number: whatsappNumberInput.value.trim(),
-        brand_name: brandNameInput.value.trim() || 'MK Tur Tourism',
-      })
+      .update(payload)
       .eq('id', current.id)
 
     if (error) {
