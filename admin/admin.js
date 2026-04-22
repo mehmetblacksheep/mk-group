@@ -401,9 +401,9 @@ async function upsertItem() {
   syncCurrentLanguageInputsToState()
 
   const gallery = (state.gallery || []).filter(Boolean).slice(0, 3)
+  const itemId = state.editingId || crypto.randomUUID()
 
   const payload = {
-    id: state.editingId || crypto.randomUUID(),
     category: formFields.category.value,
     sort_order: Number(formFields.order.value) || await getNextOrder(formFields.category.value),
 
@@ -436,13 +436,15 @@ async function upsertItem() {
     return
   }
 
-  const { error } = await supabase
-    .from('items')
-    .upsert(payload)
+  const request = state.editingId
+    ? supabase.from('items').update(payload).eq('id', itemId)
+    : supabase.from('items').insert({ id: itemId, ...payload })
+
+  const { error } = await request
 
   if (error) {
     console.error('Kayıt hatası:', error)
-    alert('Kayıt sırasında hata oluştu.')
+    alert(`Kayıt sırasında hata oluştu: ${error.message}`)
     return
   }
 
