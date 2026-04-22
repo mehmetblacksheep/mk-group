@@ -180,8 +180,23 @@
         <button id="deleteItem" class="danger-btn hidden">Sil</button>
         <div class="action-right">
           <button id="cancelEditor" class="secondary-btn">Vazgeç</button>
+          <button id="previewItem" class="secondary-btn" type="button">Onizle</button>
           <button id="saveItem" class="primary-btn">Kaydet</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="previewModal">
+    <div class="preview-modal-card">
+      <button id="closePreview" class="icon-btn preview-close" type="button">X</button>
+      <img id="previewImage" class="preview-modal-image" alt="Onizleme gorseli" />
+      <div class="preview-modal-content">
+        <h3 id="previewTitle"></h3>
+        <p id="previewDescription"></p>
+        <div id="previewMeta" class="preview-meta-list"></div>
+        <div id="previewPrice" class="preview-price"></div>
+        <span class="preview-whatsapp">WhatsApp</span>
       </div>
     </div>
   </div>

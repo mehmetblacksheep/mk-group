@@ -174,9 +174,59 @@ h1 { margin: 0 0 4px; font-size: 28px; }
   gap: 14px;
   margin-top: auto;
 }
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.item-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 43px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #25d366;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(37, 211, 102, 0.18);
+}
+.item-whatsapp-btn:hover {
+  background: #1ebe5d;
+}
 .meta-inline {
   color: var(--muted);
   font-size: 14px;
+}
+.list-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 150px;
+  color: var(--muted);
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 20px;
+  background: rgba(255,255,255,.7);
+}
+.list-state p {
+  margin: 0;
+}
+.list-state-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+.list-state.loading .list-state-dot {
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: .35; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.2); }
 }
 .modal-overlay {
   position: fixed;
@@ -452,6 +502,17 @@ body.modal-open .whatsapp-float {
 
   .item-thumb {
     height: 180px;
+  }
+
+  .item-footer,
+  .item-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .item-actions .secondary-btn,
+  .item-whatsapp-btn {
+    width: 100%;
   }
 
   h1 {

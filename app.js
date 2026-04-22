@@ -9,6 +9,7 @@ const placeholder = 'assets/logo.png';
 const WHATSAPP_NUMBER = '905349172414';
 const BRAND_NAME = 'MK Group';
 const BRAND_SUBTITLE = 'Local Services';
+const LANG_STORAGE_KEY = 'mk_group_selected_language';
 
 const translations = {
   tr: {
@@ -83,6 +84,34 @@ const translations = {
   }
 };
 
+const uiText = {
+  tr: {
+    loading: 'Yukleniyor...',
+    emptyCategory: 'Bu kategoride aktif icerik yok.',
+    quickWhatsapp: 'WhatsApp'
+  },
+  en: {
+    loading: 'Loading...',
+    emptyCategory: 'No active items in this category.',
+    quickWhatsapp: 'WhatsApp'
+  },
+  de: {
+    loading: 'Wird geladen...',
+    emptyCategory: 'Keine aktiven Inhalte in dieser Kategorie.',
+    quickWhatsapp: 'WhatsApp'
+  },
+  ru: {
+    loading: 'Loading...',
+    emptyCategory: 'No active items in this category.',
+    quickWhatsapp: 'WhatsApp'
+  },
+  ar: {
+    loading: 'Loading...',
+    emptyCategory: 'No active items in this category.',
+    quickWhatsapp: 'WhatsApp'
+  }
+};
+
 const state = {
   lang: 'tr',
   activeCategory: null,
@@ -128,11 +157,18 @@ function buildWhatsAppUrl(message = '') {
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
 
-function applyWhatsAppLinks(item = null) {
-  const title = item?.title?.trim();
-  const itemText = title
-    ? `Merhaba, ${title} hakkinda bilgi almak istiyorum.`
+function getUiText(key) {
+  return uiText[state.lang]?.[key] || uiText.en[key] || key;
+}
+
+function buildItemWhatsAppMessage(item = null) {
+  return item?.title?.trim()
+    ? `Merhaba, ${item.title.trim()} hakkinda bilgi almak istiyorum.`
     : 'Merhaba, bilgi almak istiyorum.';
+}
+
+function applyWhatsAppLinks(item = null) {
+  const itemText = buildItemWhatsAppMessage(item);
 
   if (whatsappFloat) {
     whatsappFloat.href = buildWhatsAppUrl();
@@ -141,6 +177,24 @@ function applyWhatsAppLinks(item = null) {
   if (modalWhatsapp) {
     modalWhatsapp.href = buildWhatsAppUrl(itemText);
   }
+}
+
+function showListStatus(message, type = 'loading') {
+  itemList.innerHTML = `
+    <div class="list-state ${type}">
+      <span class="list-state-dot"></span>
+      <p>${message}</p>
+    </div>
+  `;
+}
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function pickLangValue(row, base, lang = 'tr') {
@@ -225,6 +279,11 @@ function applyBrandName() {
 
 function setLanguage(lang) {
   state.lang = lang;
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, lang);
+  } catch {
+    // Ignore storage restrictions.
+  }
 
   const t = translations[lang];
 
@@ -256,24 +315,33 @@ function renderItems(items) {
   activeCategoryTitle.textContent = t[category];
   activeCategoryDescription.textContent = t.listHelp;
 
+  if (!items.length) {
+    showListStatus(getUiText('emptyCategory'), 'empty');
+    return;
+  }
+
   itemList.innerHTML = items.map((item, index) => {
     const imageSrc =
       (Array.isArray(item.images) && item.images.length > 0 ? item.images[0] : null) ||
       item.image ||
       placeholder;
+    const quickWhatsappUrl = buildWhatsAppUrl(buildItemWhatsAppMessage(item));
 
     return `
       <article class="item-card" data-index="${index}">
-        <img class="item-thumb" src="${imageSrc}" alt="${item.title}" />
+        <img class="item-thumb" src="${escapeHtml(imageSrc)}" alt="${escapeHtml(item.title)}" />
         <div class="item-body">
           <div class="item-title-row">
-            <h3>${item.title}</h3>
-            ${item.price ? `<span class="price-badge">${item.price}</span>` : ''}
+            <h3>${escapeHtml(item.title)}</h3>
+            ${item.price ? `<span class="price-badge">${escapeHtml(item.price)}</span>` : ''}
           </div>
-          <p class="item-desc">${item.shortDescription || ''}</p>
+          <p class="item-desc">${escapeHtml(item.shortDescription || '')}</p>
           <div class="item-footer">
-            <span class="meta-inline">${item.duration || ''}</span>
-            <button class="secondary-btn" type="button">${t.detail}</button>
+            <span class="meta-inline">${escapeHtml(item.duration || '')}</span>
+            <div class="item-actions">
+              <a class="item-whatsapp-btn" href="${escapeHtml(quickWhatsappUrl)}" target="_blank" rel="noopener noreferrer">${getUiText('quickWhatsapp')}</a>
+              <button class="secondary-btn" type="button">${t.detail}</button>
+            </div>
           </div>
         </div>
       </article>
@@ -281,7 +349,9 @@ function renderItems(items) {
   }).join('');
 
   itemList.querySelectorAll('.item-card').forEach((card) => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('.item-whatsapp-btn')) return;
+
       state.savedScrollY = window.scrollY;
       const selectedItem = items[Number(card.dataset.index)];
       openModal(selectedItem);
@@ -295,6 +365,7 @@ async function selectCategory(category) {
   categoryGrid.classList.add('hidden');
   listSection.classList.remove('hidden');
   updateScreenSubtitle();
+  showListStatus(getUiText('loading'), 'loading');
 
   const items = await getCategoryItems(category, state.lang);
 
@@ -429,7 +500,16 @@ async function init() {
   await loadSettings();
   applyBrandName();
   applyWhatsAppLinks();
-  setLanguage('tr');
+  let savedLang = 'tr';
+  try {
+    savedLang = localStorage.getItem(LANG_STORAGE_KEY) || 'tr';
+  } catch {
+    savedLang = 'tr';
+  }
+
+  if (!translations[savedLang]) savedLang = 'tr';
+  langSelect.value = savedLang;
+  setLanguage(savedLang);
 }
 
 void init();

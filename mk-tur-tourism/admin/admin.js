@@ -37,6 +37,7 @@ const closeEditor = document.getElementById('closeEditor')
 const cancelEditor = document.getElementById('cancelEditor')
 const saveItemBtn = document.getElementById('saveItem')
 const deleteItemBtn = document.getElementById('deleteItem')
+const previewItemBtn = document.getElementById('previewItem')
 const saveSettingsBtn = document.getElementById('saveSettings')
 const whatsappNumberInput = document.getElementById('whatsappNumber')
 const brandNameInput = document.getElementById('brandName')
@@ -46,6 +47,13 @@ const translateFromTurkishBtn = document.getElementById('translateFromTurkish')
 const translateStatus = document.getElementById('translateStatus')
 const imagePreviewGrid = document.getElementById('imagePreviewGrid')
 const uploadError = document.getElementById('uploadError')
+const previewModal = document.getElementById('previewModal')
+const closePreview = document.getElementById('closePreview')
+const previewImage = document.getElementById('previewImage')
+const previewTitle = document.getElementById('previewTitle')
+const previewDescription = document.getElementById('previewDescription')
+const previewMeta = document.getElementById('previewMeta')
+const previewPrice = document.getElementById('previewPrice')
 
 const formFields = {
   category: document.getElementById('itemCategory'),
@@ -215,6 +223,7 @@ function setItemSaving(isSaving) {
   saveItemBtn.disabled = isSaving
   cancelEditor.disabled = isSaving
   closeEditor.disabled = isSaving
+  if (previewItemBtn) previewItemBtn.disabled = isSaving
   if (translateFromTurkishBtn) translateFromTurkishBtn.disabled = isSaving
   saveItemBtn.textContent = isSaving ? 'Kaydediliyor...' : 'Kaydet'
 }
@@ -496,9 +505,12 @@ async function readFiles(files) {
   }
 
   const selectedFiles = incoming.slice(0, remainingSlots)
+  const largeFiles = selectedFiles.filter(file => file.size > 700 * 1024)
 
   if (incoming.length > remainingSlots) {
     showUploadError(`Sadece ${remainingSlots} görsel daha ekleyebilirsin. İlk ${remainingSlots} görsel yüklenecek.`)
+  } else if (largeFiles.length) {
+    showUploadError('Secilen gorsellerden bazilari buyuk. Daha hizli site icin 700 KB altinda gorsel onerilir.')
   } else {
     resetUploadError()
   }
@@ -562,6 +574,44 @@ function closeEditorModal() {
   state.translations = null
   imageInput.value = ''
   setTranslateStatus('')
+}
+
+function getEditorPreviewItem() {
+  syncCurrentLanguageInputsToState()
+
+  const content = state.translations?.[state.editorLang] || state.translations?.tr || {}
+  const gallery = (state.gallery || []).filter(Boolean)
+
+  return {
+    title: content.title || state.translations?.tr?.title || 'Baslik',
+    desc: content.desc || content.short || state.translations?.tr?.desc || state.translations?.tr?.short || '',
+    price: formFields.price.value.trim(),
+    duration: formFields.duration.value.trim(),
+    image: gallery[0] || fallbackImage,
+    active: formFields.active.checked,
+  }
+}
+
+function openItemPreview() {
+  if (!previewModal) return
+
+  const item = getEditorPreviewItem()
+  previewImage.src = item.image
+  previewTitle.textContent = item.title
+  previewDescription.textContent = item.desc
+  previewPrice.textContent = item.price || ''
+  previewPrice.classList.toggle('hidden', !item.price)
+
+  const chips = []
+  if (item.duration) chips.push(`<span>${escapeHtml(item.duration)}</span>`)
+  chips.push(`<span>${item.active ? 'Aktif' : 'Pasif'}</span>`)
+  previewMeta.innerHTML = chips.join('')
+
+  previewModal.classList.remove('hidden')
+}
+
+function closeItemPreview() {
+  previewModal?.classList.add('hidden')
 }
 
 async function upsertItem() {
@@ -766,6 +816,11 @@ cancelEditor.addEventListener('click', closeEditorModal)
 saveItemBtn.addEventListener('click', () => { void upsertItem() })
 deleteItemBtn.addEventListener('click', () => { void deleteCurrentItem() })
 saveSettingsBtn.addEventListener('click', () => { void saveSettingsFromForm() })
+previewItemBtn?.addEventListener('click', openItemPreview)
+closePreview?.addEventListener('click', closeItemPreview)
+previewModal?.addEventListener('click', event => {
+  if (event.target === previewModal) closeItemPreview()
+})
 if (translateFromTurkishBtn) {
   translateFromTurkishBtn.addEventListener('click', () => { void translateFromTurkish() })
 }
