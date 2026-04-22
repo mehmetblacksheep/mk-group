@@ -34,6 +34,8 @@ const whatsappNumberInput = document.getElementById('whatsappNumber')
 const brandNameInput = document.getElementById('brandName')
 const imageInput = document.getElementById('itemImages')
 const editorLang = document.getElementById('editorLang')
+const translateFromTurkishBtn = document.getElementById('translateFromTurkish')
+const translateStatus = document.getElementById('translateStatus')
 const imagePreviewGrid = document.getElementById('imagePreviewGrid')
 const uploadError = document.getElementById('uploadError')
 
@@ -151,6 +153,76 @@ function fillInputsFromLanguage(lang) {
   formFields.title.value = content.title || ''
   formFields.short.value = content.short || ''
   formFields.desc.value = content.desc || ''
+}
+
+function setTranslateStatus(message = '', type = 'info') {
+  if (!translateStatus) return
+
+  translateStatus.textContent = message
+  translateStatus.dataset.type = type
+  translateStatus.classList.toggle('hidden', !message)
+}
+
+async function translateFromTurkish() {
+  syncCurrentLanguageInputsToState()
+
+  const source = state.translations?.tr || { title: '', short: '', desc: '' }
+  const hasSourceText = Boolean(source.title || source.short || source.desc)
+
+  if (!hasSourceText) {
+    alert('Once Turkce baslik veya aciklama gir.')
+    return
+  }
+
+  const { data } = await supabase.auth.getSession()
+  const token = data?.session?.access_token
+
+  if (!token) {
+    alert('Ceviri icin admin oturumu gerekiyor.')
+    return
+  }
+
+  if (translateFromTurkishBtn) translateFromTurkishBtn.disabled = true
+  setTranslateStatus('Cevriliyor...', 'info')
+
+  try {
+    const response = await fetch('/api/translate', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fields: source,
+        targets: ['en', 'de', 'ru', 'ar'],
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Ceviri tamamlanamadi.')
+    }
+
+    for (const lang of ['en', 'de', 'ru', 'ar']) {
+      if (result.translations?.[lang]) {
+        state.translations[lang] = {
+          title: result.translations[lang].title || '',
+          short: result.translations[lang].short || '',
+          desc: result.translations[lang].desc || '',
+        }
+      }
+    }
+
+    fillInputsFromLanguage(state.editorLang)
+    setTranslateStatus('Ceviri hazir. Dilleri kontrol edip kaydedebilirsin.', 'success')
+  } catch (err) {
+    console.error('Ceviri hatasi:', err)
+    setTranslateStatus(err.message || 'Ceviri sirasinda hata olustu.', 'error')
+    alert(`Ceviri sirasinda hata olustu: ${err.message}`)
+  } finally {
+    if (translateFromTurkishBtn) translateFromTurkishBtn.disabled = false
+  }
 }
 async function getContent() {
   const { data, error } = await supabase
@@ -384,6 +456,7 @@ async function openEditor(item = null) {
   state.gallery = item?.gallery?.length ? [...item.gallery] : [fallbackImage]
 
   resetUploadError()
+  setTranslateStatus('')
   renderPreview()
   editorModal.classList.remove('hidden')
 }
@@ -395,6 +468,7 @@ function closeEditorModal() {
   state.editorLang = 'tr'
   state.translations = null
   imageInput.value = ''
+  setTranslateStatus('')
 }
 
 async function upsertItem() {
@@ -585,6 +659,9 @@ cancelEditor.addEventListener('click', closeEditorModal)
 saveItemBtn.addEventListener('click', () => { void upsertItem() })
 deleteItemBtn.addEventListener('click', () => { void deleteCurrentItem() })
 saveSettingsBtn.addEventListener('click', () => { void saveSettingsFromForm() })
+if (translateFromTurkishBtn) {
+  translateFromTurkishBtn.addEventListener('click', () => { void translateFromTurkish() })
+}
 imageInput.addEventListener('change', event => readFiles(event.target.files))
 
 formFields.category.addEventListener('change', () => {
