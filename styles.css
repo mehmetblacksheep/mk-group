@@ -452,3 +452,26 @@ h1 { margin: 0 0 4px; font-size: 28px; }
   grid-template-columns: 1fr;
 }
 }
+
+#whatsappFloat,
+#modalWhatsapp {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-decoration: none !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none;
+}
+
+#whatsappFloat {
+  position: fixed !important;
+  right: 20px !important;
+  bottom: 20px !important;
+  z-index: 999999 !important;
+}
+
+#modalWhatsapp {
+  position: relative !important;
+  z-index: 9999 !important;
+}
