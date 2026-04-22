@@ -87,11 +87,7 @@ const state = {
   activeCategory: null,
   activeItem: null,
   savedScrollY: 0,
-  galleryIndex: 0,
-  settings: {
-    whatsappNumber: WHATSAPP_NUMBER,
-    brandName: BRAND_NAME
-  }
+  galleryIndex: 0
 };
 
 const categoryGrid = document.getElementById('categoryGrid');
@@ -122,18 +118,24 @@ const closeLightbox = document.getElementById('closeLightbox');
 const whatsappFloat = document.getElementById('whatsappFloat');
 
 function buildWhatsAppUrl(message = '') {
-  const base = `https://wa.me/${WHATSAPP_NUMBER}`;
+  const phone = WHATSAPP_NUMBER.replace(/\D/g, '');
+  const base = `https://wa.me/${phone}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;
 }
 
 function applyWhatsAppLinks(item = null) {
-  const defaultText = 'Merhaba, bilgi almak istiyorum.';
-  const itemText = item?.title
-    ? `Merhaba, ${item.title} hakkında bilgi almak istiyorum.`
-    : defaultText;
+  const title = item?.title?.trim();
+  const itemText = title
+    ? `Merhaba, ${title} hakkinda bilgi almak istiyorum.`
+    : 'Merhaba, bilgi almak istiyorum.';
 
-  whatsappFloat.href = buildWhatsAppUrl();
-  modalWhatsapp.href = buildWhatsAppUrl(itemText);
+  if (whatsappFloat) {
+    whatsappFloat.href = buildWhatsAppUrl();
+  }
+
+  if (modalWhatsapp) {
+    modalWhatsapp.href = buildWhatsAppUrl(itemText);
+  }
 }
 
 function pickLangValue(row, base, lang = 'tr') {
@@ -181,7 +183,7 @@ async function getCategoryItems(category, lang = 'tr') {
 function applyBrandName() {
   const titleEl = document.querySelector('h1');
   if (titleEl) {
-    titleEl.textContent = state.settings.brandName;
+    titleEl.textContent = BRAND_NAME;
   }
 }
 
@@ -204,6 +206,7 @@ function setLanguage(lang) {
   backToCategories.textContent = t.back;
   modalWhatsapp.textContent = t.whatsapp;
   whatsappFloat.textContent = t.whatsappFloat;
+  applyWhatsAppLinks(state.activeItem);
 
   if (state.activeCategory) {
     void selectCategory(state.activeCategory);
@@ -315,7 +318,7 @@ function closeModalFn() {
   detailModal.classList.add('hidden');
   detailModal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('modal-open');
-  window.scrollTo({ top: state.savedScrollY, behavior: 'instant' });
+  window.scrollTo({ top: state.savedScrollY, behavior: 'auto' });
 }
 
 document.querySelectorAll('.category-card').forEach((btn) =>
@@ -332,6 +335,16 @@ backToCategories.addEventListener('click', () => {
 langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
 
 closeModal.addEventListener('click', closeModalFn);
+
+whatsappFloat.addEventListener('click', (e) => {
+  e.stopPropagation();
+  applyWhatsAppLinks();
+});
+
+modalWhatsapp.addEventListener('click', (e) => {
+  e.stopPropagation();
+  applyWhatsAppLinks(state.activeItem);
+});
 
 detailModal.addEventListener('click', (e) => {
   if (e.target === detailModal) closeModalFn();
