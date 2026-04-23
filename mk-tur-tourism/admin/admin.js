@@ -17,6 +17,84 @@ const LANGUAGES = [
   { code: 'ar', label: 'AR' },
 ]
 
+const localizedMetaUnits = {
+  en: {
+    hour: ['hour', 'hours'],
+    minute: ['minute', 'minutes'],
+    day: ['day', 'days'],
+    person: ['person', 'people'],
+  },
+  de: {
+    hour: ['Stunde', 'Stunden'],
+    minute: ['Minute', 'Minuten'],
+    day: ['Tag', 'Tage'],
+    person: ['Person', 'Personen'],
+  },
+  ru: {
+    hour: ['час', 'часа', 'часов'],
+    minute: ['минута', 'минуты', 'минут'],
+    day: ['день', 'дня', 'дней'],
+    person: ['человек', 'человека', 'человек'],
+  },
+  ar: {
+    hour: ['ساعة', 'ساعات'],
+    minute: ['دقيقة', 'دقائق'],
+    day: ['يوم', 'أيام'],
+    person: ['شخص', 'أشخاص'],
+  },
+}
+
+const localizedMetaPhrases = {
+  en: [
+    [/gidiş\s*dönüş/giu, 'round trip'],
+    [/gidis\s*donus/giu, 'round trip'],
+    [/tek\s*yön/giu, 'one way'],
+    [/tek\s*yon/giu, 'one way'],
+    [/yarım\s*gün/giu, 'half day'],
+    [/yarim\s*gun/giu, 'half day'],
+    [/tam\s*gün/giu, 'full day'],
+    [/tam\s*gun/giu, 'full day'],
+    [/özel/giu, 'private'],
+    [/ozel/giu, 'private'],
+  ],
+  de: [
+    [/gidiş\s*dönüş/giu, 'Hin- und Rückfahrt'],
+    [/gidis\s*donus/giu, 'Hin- und Rückfahrt'],
+    [/tek\s*yön/giu, 'einfache Fahrt'],
+    [/tek\s*yon/giu, 'einfache Fahrt'],
+    [/yarım\s*gün/giu, 'halber Tag'],
+    [/yarim\s*gun/giu, 'halber Tag'],
+    [/tam\s*gün/giu, 'ganzer Tag'],
+    [/tam\s*gun/giu, 'ganzer Tag'],
+    [/özel/giu, 'privat'],
+    [/ozel/giu, 'privat'],
+  ],
+  ru: [
+    [/gidiş\s*dönüş/giu, 'туда и обратно'],
+    [/gidis\s*donus/giu, 'туда и обратно'],
+    [/tek\s*yön/giu, 'в одну сторону'],
+    [/tek\s*yon/giu, 'в одну сторону'],
+    [/yarım\s*gün/giu, 'полдня'],
+    [/yarim\s*gun/giu, 'полдня'],
+    [/tam\s*gün/giu, 'полный день'],
+    [/tam\s*gun/giu, 'полный день'],
+    [/özel/giu, 'частный'],
+    [/ozel/giu, 'частный'],
+  ],
+  ar: [
+    [/gidiş\s*dönüş/giu, 'ذهاب وعودة'],
+    [/gidis\s*donus/giu, 'ذهاب وعودة'],
+    [/tek\s*yön/giu, 'اتجاه واحد'],
+    [/tek\s*yon/giu, 'اتجاه واحد'],
+    [/yarım\s*gün/giu, 'نصف يوم'],
+    [/yarim\s*gun/giu, 'نصف يوم'],
+    [/tam\s*gün/giu, 'يوم كامل'],
+    [/tam\s*gun/giu, 'يوم كامل'],
+    [/özel/giu, 'خاص'],
+    [/ozel/giu, 'خاص'],
+  ],
+}
+
 const loginCard = document.getElementById('loginCard')
 const dashboard = document.getElementById('dashboard')
 const loginBtn = document.getElementById('loginBtn')
@@ -87,6 +165,54 @@ function escapeHtml(value = '') {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+function getPluralIndex(amount, lang) {
+  const number = Number(String(amount).replace(',', '.'))
+
+  if (lang === 'ru') {
+    const integer = Math.abs(Math.trunc(number))
+    const lastDigit = integer % 10
+    const lastTwoDigits = integer % 100
+
+    if (lastDigit === 1 && lastTwoDigits !== 11) return 0
+    if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) return 1
+    return 2
+  }
+
+  return number === 1 ? 0 : 1
+}
+
+function getLocalizedUnit(unit, amount, lang) {
+  const labels = localizedMetaUnits[lang]?.[unit]
+  if (!labels) return ''
+
+  return labels[Math.min(getPluralIndex(amount, lang), labels.length - 1)]
+}
+
+function localizeMetaText(value = '', lang = state.editorLang) {
+  if (!value || lang === 'tr') return value
+
+  let text = String(value)
+
+  for (const [pattern, replacement] of localizedMetaPhrases[lang] || []) {
+    text = text.replace(pattern, replacement)
+  }
+
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(saat|sa)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('hour', amount, lang)}`
+  )
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(dakika|dk)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('minute', amount, lang)}`
+  )
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(gün|gun)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('day', amount, lang)}`
+  )
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(kişi|kisi)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('person', amount, lang)}`
+  )
+
+  return text
 }
 
 function hasTranslationContent(content = {}) {
@@ -603,7 +729,7 @@ function openItemPreview() {
   previewPrice.classList.toggle('hidden', !item.price)
 
   const chips = []
-  if (item.duration) chips.push(`<span>${escapeHtml(item.duration)}</span>`)
+  if (item.duration) chips.push(`<span>${escapeHtml(localizeMetaText(item.duration))}</span>`)
   chips.push(`<span>${item.active ? 'Aktif' : 'Pasif'}</span>`)
   previewMeta.innerHTML = chips.join('')
 

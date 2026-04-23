@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <link rel="icon" type="image/png" href="/assets/logo.png" />
   <title>MK Tur Tourism Admin</title>
   <link rel="stylesheet" href="/admin/admin.css" />
 </head>
@@ -18,19 +20,19 @@
       </div>
       <div class="login-grid">
         <label>
-          <span>Kullanıcı adı</span>
-          <input id="loginUsername" type="text" placeholder="admin" />
+          <span>E-posta</span>
+          <input id="loginUsername" type="email" placeholder="ornek@firma.com" autocomplete="username" />
         </label>
         <label>
           <span>Şifre</span>
-          <input id="loginPassword" type="password" placeholder="123456" />
+          <input id="loginPassword" type="password" placeholder="Şifreniz" autocomplete="current-password" />
         </label>
       </div>
       <div class="login-actions">
         <button id="loginBtn" class="primary-btn">Giriş yap</button>
-        <p class="muted small">Demo giriş: <strong>admin / 123456</strong></p>
+        <p class="muted small">Yalnızca yetkili personel erişebilir.</p>
       </div>
-      <p id="loginError" class="error hidden">Kullanıcı adı veya şifre hatalı.</p>
+      <p id="loginError" class="error hidden">E-posta veya şifre hatalı.</p>
     </section>
 
     <section class="dashboard hidden" id="dashboard">
@@ -156,6 +158,7 @@
         <label>
           <span>Süre / kısa bilgi</span>
           <input id="itemDuration" type="text" placeholder="6 saat" />
+          <small class="muted">Türkçe yazabilirsin; sitede seçili dile göre çevrilir.</small>
         </label>
         <div class="full-row upload-section">
           <div class="upload-head">

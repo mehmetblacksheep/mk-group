@@ -92,18 +92,18 @@ h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: 0; }
 }
 .tour-bg {
   background-image:
-    linear-gradient(135deg, rgba(11,79,74,.9), rgba(212,163,115,.44)),
-    url('assets/logo.png');
+    linear-gradient(135deg, rgba(11,79,74,.28), rgba(212,163,115,.16)),
+    url('assets/category-tour.jpg');
 }
 .transfer-bg {
   background-image:
-    linear-gradient(135deg, rgba(23,32,42,.9), rgba(15,118,110,.52)),
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,.28), transparent 25%);
+    linear-gradient(135deg, rgba(23,32,42,.42), rgba(15,118,110,.12)),
+    url('assets/category-transfer.jpg');
 }
 .market-bg {
   background-image:
-    linear-gradient(135deg, rgba(116,78,37,.86), rgba(15,118,110,.44)),
-    radial-gradient(circle at 70% 25%, rgba(255,255,255,.24), transparent 28%);
+    linear-gradient(135deg, rgba(116,78,37,.28), rgba(15,118,110,.12)),
+    url('assets/category-market.jpg');
 }
 .category-content { padding: 18px; }
 .category-content h2 { margin: 0 0 8px; font-size: 24px; }

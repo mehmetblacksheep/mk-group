@@ -112,6 +112,107 @@ const uiText = {
   }
 };
 
+const whatsappMessages = {
+  tr: {
+    item: (title) => `Merhaba, ${title} hakkinda bilgi almak istiyorum.`,
+    generic: 'Merhaba, bilgi almak istiyorum.'
+  },
+  en: {
+    item: (title) => `Hello, I would like to get information about ${title}.`,
+    generic: 'Hello, I would like to get more information.'
+  },
+  de: {
+    item: (title) => `Hallo, ich moechte Informationen zu ${title} erhalten.`,
+    generic: 'Hallo, ich moechte mehr Informationen erhalten.'
+  },
+  ru: {
+    item: (title) => `Здравствуйте, я хочу получить информацию о ${title}.`,
+    generic: 'Здравствуйте, я хочу получить дополнительную информацию.'
+  },
+  ar: {
+    item: (title) => `مرحبا، أود الحصول على معلومات حول ${title}.`,
+    generic: 'مرحبا، أود الحصول على مزيد من المعلومات.'
+  }
+};
+
+const localizedMetaUnits = {
+  en: {
+    hour: ['hour', 'hours'],
+    minute: ['minute', 'minutes'],
+    day: ['day', 'days'],
+    person: ['person', 'people']
+  },
+  de: {
+    hour: ['Stunde', 'Stunden'],
+    minute: ['Minute', 'Minuten'],
+    day: ['Tag', 'Tage'],
+    person: ['Person', 'Personen']
+  },
+  ru: {
+    hour: ['час', 'часа', 'часов'],
+    minute: ['минута', 'минуты', 'минут'],
+    day: ['день', 'дня', 'дней'],
+    person: ['человек', 'человека', 'человек']
+  },
+  ar: {
+    hour: ['ساعة', 'ساعات'],
+    minute: ['دقيقة', 'دقائق'],
+    day: ['يوم', 'أيام'],
+    person: ['شخص', 'أشخاص']
+  }
+};
+
+const localizedMetaPhrases = {
+  en: [
+    [/gidiş\s*dönüş/giu, 'round trip'],
+    [/gidis\s*donus/giu, 'round trip'],
+    [/tek\s*yön/giu, 'one way'],
+    [/tek\s*yon/giu, 'one way'],
+    [/yarım\s*gün/giu, 'half day'],
+    [/yarim\s*gun/giu, 'half day'],
+    [/tam\s*gün/giu, 'full day'],
+    [/tam\s*gun/giu, 'full day'],
+    [/özel/giu, 'private'],
+    [/ozel/giu, 'private']
+  ],
+  de: [
+    [/gidiş\s*dönüş/giu, 'Hin- und Rückfahrt'],
+    [/gidis\s*donus/giu, 'Hin- und Rückfahrt'],
+    [/tek\s*yön/giu, 'einfache Fahrt'],
+    [/tek\s*yon/giu, 'einfache Fahrt'],
+    [/yarım\s*gün/giu, 'halber Tag'],
+    [/yarim\s*gun/giu, 'halber Tag'],
+    [/tam\s*gün/giu, 'ganzer Tag'],
+    [/tam\s*gun/giu, 'ganzer Tag'],
+    [/özel/giu, 'privat'],
+    [/ozel/giu, 'privat']
+  ],
+  ru: [
+    [/gidiş\s*dönüş/giu, 'туда и обратно'],
+    [/gidis\s*donus/giu, 'туда и обратно'],
+    [/tek\s*yön/giu, 'в одну сторону'],
+    [/tek\s*yon/giu, 'в одну сторону'],
+    [/yarım\s*gün/giu, 'полдня'],
+    [/yarim\s*gun/giu, 'полдня'],
+    [/tam\s*gün/giu, 'полный день'],
+    [/tam\s*gun/giu, 'полный день'],
+    [/özel/giu, 'частный'],
+    [/ozel/giu, 'частный']
+  ],
+  ar: [
+    [/gidiş\s*dönüş/giu, 'ذهاب وعودة'],
+    [/gidis\s*donus/giu, 'ذهاب وعودة'],
+    [/tek\s*yön/giu, 'اتجاه واحد'],
+    [/tek\s*yon/giu, 'اتجاه واحد'],
+    [/yarım\s*gün/giu, 'نصف يوم'],
+    [/yarim\s*gun/giu, 'نصف يوم'],
+    [/tam\s*gün/giu, 'يوم كامل'],
+    [/tam\s*gun/giu, 'يوم كامل'],
+    [/özel/giu, 'خاص'],
+    [/ozel/giu, 'خاص']
+  ]
+};
+
 const state = {
   lang: 'tr',
   activeCategory: null,
@@ -161,10 +262,59 @@ function getUiText(key) {
   return uiText[state.lang]?.[key] || uiText.en[key] || key;
 }
 
+function getPluralIndex(amount, lang) {
+  const number = Number(String(amount).replace(',', '.'));
+
+  if (lang === 'ru') {
+    const integer = Math.abs(Math.trunc(number));
+    const lastDigit = integer % 10;
+    const lastTwoDigits = integer % 100;
+
+    if (lastDigit === 1 && lastTwoDigits !== 11) return 0;
+    if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) return 1;
+    return 2;
+  }
+
+  return number === 1 ? 0 : 1;
+}
+
+function getLocalizedUnit(unit, amount, lang) {
+  const labels = localizedMetaUnits[lang]?.[unit];
+  if (!labels) return '';
+
+  return labels[Math.min(getPluralIndex(amount, lang), labels.length - 1)];
+}
+
+function localizeMetaText(value = '', lang = state.lang) {
+  if (!value || lang === 'tr') return value;
+
+  let text = String(value);
+
+  for (const [pattern, replacement] of localizedMetaPhrases[lang] || []) {
+    text = text.replace(pattern, replacement);
+  }
+
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(saat|sa)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('hour', amount, lang)}`
+  );
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(dakika|dk)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('minute', amount, lang)}`
+  );
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(gün|gun)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('day', amount, lang)}`
+  );
+  text = text.replace(/(\d+(?:[.,]\d+)?)\s*(kişi|kisi)\b/giu, (_, amount) =>
+    `${amount} ${getLocalizedUnit('person', amount, lang)}`
+  );
+
+  return text;
+}
+
 function buildItemWhatsAppMessage(item = null) {
-  return item?.title?.trim()
-    ? `Merhaba, ${item.title.trim()} hakkinda bilgi almak istiyorum.`
-    : 'Merhaba, bilgi almak istiyorum.';
+  const messageSet = whatsappMessages[state.lang] || whatsappMessages.en;
+  const itemTitle = item?.title?.trim();
+
+  return itemTitle ? messageSet.item(itemTitle) : messageSet.generic;
 }
 
 function applyWhatsAppLinks(item = null) {
@@ -326,6 +476,7 @@ function renderItems(items) {
       item.image ||
       placeholder;
     const quickWhatsappUrl = buildWhatsAppUrl(buildItemWhatsAppMessage(item));
+    const durationText = localizeMetaText(item.duration);
 
     return `
       <article class="item-card" data-index="${index}">
@@ -337,7 +488,7 @@ function renderItems(items) {
           </div>
           <p class="item-desc">${escapeHtml(item.shortDescription || '')}</p>
           <div class="item-footer">
-            <span class="meta-inline">${escapeHtml(item.duration || '')}</span>
+            <span class="meta-inline">${escapeHtml(durationText || '')}</span>
             <div class="item-actions">
               <a class="item-whatsapp-btn" href="${escapeHtml(quickWhatsappUrl)}" target="_blank" rel="noopener noreferrer">${getUiText('quickWhatsapp')}</a>
               <button class="secondary-btn" type="button">${t.detail}</button>
@@ -407,9 +558,9 @@ function openModal(item) {
   if (modalMeta) {
     const chips = [];
 
-    if (item?.duration) chips.push(`<span class="meta-chip">${item.duration}</span>`);
-    if (item?.peopleCount) chips.push(`<span class="meta-chip">${item.peopleCount}</span>`);
-    if (item?.departureTime) chips.push(`<span class="meta-chip">${item.departureTime}</span>`);
+    if (item?.duration) chips.push(`<span class="meta-chip">${escapeHtml(localizeMetaText(item.duration))}</span>`);
+    if (item?.peopleCount) chips.push(`<span class="meta-chip">${escapeHtml(localizeMetaText(item.peopleCount))}</span>`);
+    if (item?.departureTime) chips.push(`<span class="meta-chip">${escapeHtml(localizeMetaText(item.departureTime))}</span>`);
 
     modalMeta.innerHTML = chips.join('');
   }
