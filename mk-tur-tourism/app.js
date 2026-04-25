@@ -10,6 +10,7 @@ const WHATSAPP_NUMBER = '905349172414';
 const BRAND_NAME = 'MK Group';
 const BRAND_SUBTITLE = 'Local Services';
 const LANG_STORAGE_KEY = 'mk_group_selected_language';
+const HISTORY_STATE_KEY = 'mk_group_history_state';
 
 const translations = {
   tr: {
@@ -217,6 +218,7 @@ const state = {
   lang: 'tr',
   activeCategory: null,
   activeItem: null,
+  activeItems: [],
   savedScrollY: 0,
   galleryIndex: 0,
   settings: {
@@ -315,6 +317,32 @@ function buildItemWhatsAppMessage(item = null) {
   const itemTitle = item?.title?.trim();
 
   return itemTitle ? messageSet.item(itemTitle) : messageSet.generic;
+}
+
+function buildHomeHistoryState() {
+  return { [HISTORY_STATE_KEY]: true, view: 'home' };
+}
+
+function buildCategoryHistoryState(category) {
+  return { [HISTORY_STATE_KEY]: true, view: 'category', category };
+}
+
+function buildModalHistoryState(category, itemId) {
+  return { [HISTORY_STATE_KEY]: true, view: 'modal', category, itemId };
+}
+
+function isManagedHistoryState(value) {
+  return Boolean(value?.[HISTORY_STATE_KEY]);
+}
+
+function ensureHomeHistoryState() {
+  if (!isManagedHistoryState(window.history.state)) {
+    window.history.replaceState(buildHomeHistoryState(), '', window.location.href);
+  }
+}
+
+function pushHistoryState(nextState) {
+  window.history.pushState(nextState, '', window.location.href);
 }
 
 function applyWhatsAppLinks(item = null) {
@@ -454,13 +482,14 @@ function setLanguage(lang) {
   applyWhatsAppLinks(state.activeItem);
 
   if (state.activeCategory) {
-    void selectCategory(state.activeCategory);
+    void selectCategory(state.activeCategory, { pushHistory: false, scrollIntoView: false });
   }
 }
 
 function renderItems(items) {
   const t = translations[state.lang];
   const category = state.activeCategory;
+  state.activeItems = items;
 
   activeCategoryTitle.textContent = t[category];
   activeCategoryDescription.textContent = t.listHelp;
@@ -510,7 +539,8 @@ function renderItems(items) {
   });
 }
 
-async function selectCategory(category) {
+async function selectCategory(category, options = {}) {
+  const { pushHistory = true, scrollIntoView = true } = options;
   state.activeCategory = category;
 
   categoryGrid.classList.add('hidden');
@@ -522,7 +552,13 @@ async function selectCategory(category) {
 
   renderItems(items);
 
-  listSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (pushHistory) {
+    pushHistoryState(buildCategoryHistoryState(category));
+  }
+
+  if (scrollIntoView) {
+    listSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function renderGallery(item, nextIndex = 0) {
@@ -547,7 +583,8 @@ function renderGallery(item, nextIndex = 0) {
   }
 }
 
-function openModal(item) {
+function openModal(item, options = {}) {
+  const { pushHistory = true } = options;
   state.activeItem = item;
   state.galleryIndex = 0;
 
@@ -571,6 +608,10 @@ function openModal(item) {
   detailModal.classList.remove('hidden');
   detailModal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('modal-open');
+
+  if (pushHistory && state.activeCategory && item?.id) {
+    pushHistoryState(buildModalHistoryState(state.activeCategory, item.id));
+  }
 }
 
 function updateScreenSubtitle() {
@@ -582,11 +623,72 @@ function updateScreenSubtitle() {
     : BRAND_SUBTITLE;
 }
 
-function closeModalFn() {
+function closeLightboxFn() {
+  lightbox.classList.add('hidden');
+  closeModal.classList.remove('hidden');
+}
+
+function closeModalView(options = {}) {
+  const { restoreScroll = true } = options;
+  closeLightboxFn();
   detailModal.classList.add('hidden');
   detailModal.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('modal-open');
-  window.scrollTo({ top: state.savedScrollY, behavior: 'auto' });
+  state.activeItem = null;
+
+  if (restoreScroll) {
+    window.scrollTo({ top: state.savedScrollY, behavior: 'auto' });
+  }
+}
+
+function closeModalFn(options = {}) {
+  const { useHistory = true, restoreScroll = true } = options;
+
+  if (useHistory && window.history.state?.view === 'modal') {
+    window.history.back();
+    return;
+  }
+
+  closeModalView({ restoreScroll });
+}
+
+function showHomeView(options = {}) {
+  const { scrollToTop = true } = options;
+  closeModalView({ restoreScroll: false });
+  state.activeCategory = null;
+  state.activeItems = [];
+  listSection.classList.add('hidden');
+  categoryGrid.classList.remove('hidden');
+  updateScreenSubtitle();
+
+  if (scrollToTop) {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+}
+
+async function syncUiWithHistory(nextState = window.history.state) {
+  if (!isManagedHistoryState(nextState) || nextState.view === 'home') {
+    showHomeView();
+    return;
+  }
+
+  if (nextState.view === 'category' && nextState.category) {
+    closeModalView({ restoreScroll: false });
+    await selectCategory(nextState.category, { pushHistory: false, scrollIntoView: false });
+    return;
+  }
+
+  if (nextState.view === 'modal' && nextState.category) {
+    await selectCategory(nextState.category, { pushHistory: false, scrollIntoView: false });
+    const selectedItem = state.activeItems.find((item) => item.id === nextState.itemId);
+
+    if (selectedItem) {
+      openModal(selectedItem, { pushHistory: false });
+      return;
+    }
+  }
+
+  showHomeView();
 }
 
 document.querySelectorAll('.category-card').forEach((btn) =>
@@ -594,11 +696,12 @@ document.querySelectorAll('.category-card').forEach((btn) =>
 );
 
 backToCategories.addEventListener('click', () => {
-  state.activeCategory = null;
-  listSection.classList.add('hidden');
-  categoryGrid.classList.remove('hidden');
-  updateScreenSubtitle();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (window.history.state?.view === 'category') {
+    window.history.back();
+    return;
+  }
+
+  showHomeView();
 });
 
 langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
@@ -637,18 +740,21 @@ modalImage.addEventListener('click', () => {
 
 lightbox.addEventListener('click', (e) => {
   if (e.target === lightbox) {
-    lightbox.classList.add('hidden');
-    closeModal.classList.remove('hidden');
+    closeLightboxFn();
   }
 });
 
 closeLightbox.addEventListener('click', () => {
-  lightbox.classList.add('hidden');
-  closeModal.classList.remove('hidden');
+  closeLightboxFn();
+});
+
+window.addEventListener('popstate', () => {
+  void syncUiWithHistory();
 });
 
 async function init() {
   await loadSettings();
+  ensureHomeHistoryState();
   applyBrandName();
   applyWhatsAppLinks();
   let savedLang = 'tr';
@@ -661,6 +767,7 @@ async function init() {
   if (!translations[savedLang]) savedLang = 'tr';
   langSelect.value = savedLang;
   setLanguage(savedLang);
+  await syncUiWithHistory(window.history.state);
 }
 
 void init();
