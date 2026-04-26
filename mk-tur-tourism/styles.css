@@ -176,6 +176,11 @@ h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: 0; }
   border-radius: 12px;
   background: #e5e7eb;
 }
+.item-thumb--contain {
+  object-fit: contain;
+  padding: 6px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f6f8 100%);
+}
 .item-body { display: flex; flex-direction: column; gap: 10px; }
 .item-title-row {
   display: flex;
@@ -309,6 +314,11 @@ h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: 0; }
   object-fit: cover;
   border-radius: 14px;
   background: #e5e7eb;
+}
+.modal-image--contain {
+  object-fit: contain;
+  padding: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f6f8 100%);
 }
 
 .gallery-dots {

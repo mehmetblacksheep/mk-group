@@ -506,10 +506,11 @@ function renderItems(items) {
       placeholder;
     const quickWhatsappUrl = buildWhatsAppUrl(buildItemWhatsAppMessage(item));
     const durationText = localizeMetaText(item.duration);
+    const thumbClassName = category === 'transfer' ? 'item-thumb item-thumb--contain' : 'item-thumb';
 
     return `
       <article class="item-card" data-index="${index}">
-        <img class="item-thumb" src="${escapeHtml(imageSrc)}" alt="${escapeHtml(item.title)}" />
+        <img class="${thumbClassName}" src="${escapeHtml(imageSrc)}" alt="${escapeHtml(item.title)}" />
         <div class="item-body">
           <div class="item-title-row">
             <h3>${escapeHtml(item.title)}</h3>
@@ -587,6 +588,7 @@ function openModal(item, options = {}) {
   const { pushHistory = true } = options;
   state.activeItem = item;
   state.galleryIndex = 0;
+  modalImage.classList.toggle('modal-image--contain', item?.category === 'transfer');
 
   modalTitle.textContent = item?.title || '';
   modalDescription.textContent = item?.detailDescription || '';
