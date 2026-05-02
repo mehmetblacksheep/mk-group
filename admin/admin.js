@@ -622,20 +622,10 @@ async function readFiles(files) {
   if (!incoming.length) return
 
   const existing = state.gallery[0] === fallbackImage ? [] : [...state.gallery]
-  const remainingSlots = Math.max(0, 3 - existing.length)
-
-  if (!remainingSlots) {
-    showUploadError('En fazla 3 görsel yükleyebilirsin.')
-    imageInput.value = ''
-    return
-  }
-
-  const selectedFiles = incoming.slice(0, remainingSlots)
+  const selectedFiles = incoming
   const largeFiles = selectedFiles.filter(file => file.size > 700 * 1024)
 
-  if (incoming.length > remainingSlots) {
-    showUploadError(`Sadece ${remainingSlots} görsel daha ekleyebilirsin. İlk ${remainingSlots} görsel yüklenecek.`)
-  } else if (largeFiles.length) {
+  if (largeFiles.length) {
     showUploadError('Secilen gorsellerden bazilari buyuk. Daha hizli site icin 700 KB altinda gorsel onerilir.')
   } else {
     resetUploadError()
@@ -648,7 +638,7 @@ async function readFiles(files) {
       uploadedUrls.push(publicUrl)
     }
 
-    state.gallery = [...existing, ...uploadedUrls].slice(0, 3)
+    state.gallery = [...existing, ...uploadedUrls]
     if (!state.gallery.length) state.gallery = [fallbackImage]
 
     renderPreview()
@@ -745,7 +735,7 @@ async function upsertItem() {
 
   syncCurrentLanguageInputsToState()
 
-  const gallery = (state.gallery || []).filter(Boolean).slice(0, 3)
+  const gallery = (state.gallery || []).filter(Boolean)
   const itemId = state.editingId || crypto.randomUUID()
 
   const payload = {

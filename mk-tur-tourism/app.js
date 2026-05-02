@@ -25,7 +25,8 @@ const translations = {
     back: 'Geri',
     whatsapp: 'WhatsApp ile iletişime geç',
     whatsappFloat: 'WhatsApp',
-    detail: 'Detay'
+    detail: 'Detay',
+    marketListTitle: 'Liste'
   },
   en: {
     subtitle: 'Choose a service',
@@ -39,7 +40,8 @@ const translations = {
     back: 'Back',
     whatsapp: 'Contact on WhatsApp',
     whatsappFloat: 'WhatsApp',
-    detail: 'Details'
+    detail: 'Details',
+    marketListTitle: 'Menu / product list'
   },
   de: {
     subtitle: 'Service auswählen',
@@ -53,7 +55,8 @@ const translations = {
     back: 'Zurück',
     whatsapp: 'Über WhatsApp kontaktieren',
     whatsappFloat: 'WhatsApp',
-    detail: 'Details'
+    detail: 'Details',
+    marketListTitle: 'Menü / Produktliste'
   },
   ru: {
     subtitle: 'Выберите услугу',
@@ -67,7 +70,8 @@ const translations = {
     back: 'Назад',
     whatsapp: 'Связаться в WhatsApp',
     whatsappFloat: 'WhatsApp',
-    detail: 'Подробнее'
+    detail: 'Подробнее',
+    marketListTitle: 'Список'
   },
   ar: {
     subtitle: 'اختر الخدمة',
@@ -81,7 +85,8 @@ const translations = {
     back: 'رجوع',
     whatsapp: 'تواصل عبر واتساب',
     whatsappFloat: 'واتساب',
-    detail: 'التفاصيل'
+    detail: 'التفاصيل',
+    marketListTitle: 'القائمة'
   }
 };
 
@@ -240,6 +245,7 @@ const closeModal = document.getElementById('closeModal');
 const modalImage = document.getElementById('modalImage');
 const modalTitle = document.getElementById('modalTitle');
 const modalDescription = document.getElementById('modalDescription');
+const modalMarketList = document.getElementById('modalMarketList');
 const modalMeta = document.getElementById('modalMeta');
 const modalPrice = document.getElementById('modalPrice');
 const modalWhatsapp = document.getElementById('modalWhatsapp');
@@ -578,20 +584,104 @@ function renderGallery(item, nextIndex = 0) {
   galleryNext.classList.toggle('hidden', gallery.length <= 1);
 
   if (galleryDots) {
-    galleryDots.innerHTML = gallery
-      .map((_, index) => `<span class="gallery-dot ${index === safeIndex ? 'active' : ''}"></span>`)
-      .join('');
+    galleryDots.innerHTML = gallery.length > 8
+      ? `<span class="gallery-counter">${safeIndex + 1} / ${gallery.length}</span>`
+      : gallery
+        .map((_, index) => `<span class="gallery-dot ${index === safeIndex ? 'active' : ''}"></span>`)
+        .join('');
   }
+}
+
+function cleanMarketListLine(line = '') {
+  return line.replace(/^(\s*[-*•]|\s*\d+[.)])\s*/, '').trim();
+}
+
+function looksLikeMarketListLine(line = '') {
+  const text = line.trim();
+
+  return /^([-*•]|\d+[.)])\s+/.test(text) ||
+    /\s[-:]\s/.test(text) ||
+    /(?:₺|€|\$)\s*\d|\d+(?:[.,]\d+)?\s*(?:tl|try|₺|eur|€|usd|\$)\b/i.test(text);
+}
+
+function getMarketDetailParts(description = '') {
+  const text = String(description || '').trim();
+  if (!text) return { intro: '', items: [] };
+
+  const blocks = text
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) return { intro: text, items: [] };
+
+  let introLines = [];
+  let listLines = lines;
+
+  if (blocks.length > 1) {
+    const firstBlockLines = blocks[0].split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const firstBlockLooksLikeList = firstBlockLines.length > 1 || firstBlockLines.some(looksLikeMarketListLine);
+
+    if (!firstBlockLooksLikeList) {
+      introLines = firstBlockLines;
+      listLines = blocks
+        .slice(1)
+        .flatMap((block) => block.split(/\r?\n/).map((line) => line.trim()).filter(Boolean));
+    }
+  }
+
+  const markedLineCount = listLines.filter(looksLikeMarketListLine).length;
+  const shouldRenderList = listLines.length >= 3 || markedLineCount >= 2;
+
+  if (!shouldRenderList) return { intro: text, items: [] };
+
+  const items = listLines.map(cleanMarketListLine).filter(Boolean);
+
+  return items.length >= 2
+    ? { intro: introLines.join('\n'), items }
+    : { intro: text, items: [] };
+}
+
+function renderMarketDetail(item) {
+  const { intro, items } = getMarketDetailParts(item?.detailDescription || '');
+
+  modalDescription.textContent = intro || '';
+  modalDescription.classList.toggle('hidden', !intro);
+
+  if (!modalMarketList) return;
+
+  modalMarketList.classList.toggle('hidden', !items.length);
+  modalMarketList.innerHTML = items.length
+    ? `
+      <div class="market-detail-list-title">${escapeHtml(translations[state.lang]?.marketListTitle || 'List')}</div>
+      <ul>
+        ${items.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}
+      </ul>
+    `
+    : '';
 }
 
 function openModal(item, options = {}) {
   const { pushHistory = true } = options;
   state.activeItem = item;
   state.galleryIndex = 0;
-  modalImage.classList.toggle('modal-image--contain', item?.category === 'transfer');
+  modalImage.classList.toggle('modal-image--contain', item?.category === 'transfer' || item?.category === 'market');
 
   modalTitle.textContent = item?.title || '';
-  modalDescription.textContent = item?.detailDescription || '';
+  if (item?.category === 'market') {
+    renderMarketDetail(item);
+  } else {
+    modalDescription.textContent = item?.detailDescription || '';
+    modalDescription.classList.toggle('hidden', !item?.detailDescription);
+    if (modalMarketList) {
+      modalMarketList.classList.add('hidden');
+      modalMarketList.innerHTML = '';
+    }
+  }
   modalPrice.textContent = item?.price || '';
 
   if (modalMeta) {
