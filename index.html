@@ -33,13 +33,50 @@
           <p class="subtitle" id="screenSubtitle">Hizmet seçin</p>
         </div>
       </div>
-      <select id="langSelect" class="lang-select" aria-label="Dil seçimi">
-        <option value="tr">TR</option>
-        <option value="en">EN</option>
-        <option value="de">DE</option>
-        <option value="ru">RU</option>
-        <option value="ar">AR</option>
-      </select>
+      <div class="language-switcher" id="languageSwitcher">
+        <button
+          class="language-toggle"
+          id="languageToggle"
+          type="button"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-label="Dil seçimi"
+        >
+          <img class="language-flag" id="languageFlag" src="assets/flag-tr.svg" alt="" />
+          <span class="language-current">
+            <span class="language-label" id="languageLabel">Türkçe</span>
+            <span class="language-code" id="languageCode">TR</span>
+          </span>
+          <span class="language-arrow" aria-hidden="true">▾</span>
+        </button>
+        <div class="language-menu hidden" id="languageMenu" role="listbox" aria-label="Dil seçimi">
+          <button class="language-option" type="button" role="option" aria-selected="true" data-lang="tr">
+            <img class="language-flag" src="assets/flag-tr.svg" alt="" />
+            <span>Türkçe</span>
+            <span class="language-option-code">TR</span>
+          </button>
+          <button class="language-option" type="button" role="option" aria-selected="false" data-lang="en">
+            <img class="language-flag" src="assets/flag-en.svg" alt="" />
+            <span>English</span>
+            <span class="language-option-code">EN</span>
+          </button>
+          <button class="language-option" type="button" role="option" aria-selected="false" data-lang="de">
+            <img class="language-flag" src="assets/flag-de.svg" alt="" />
+            <span>Deutsch</span>
+            <span class="language-option-code">DE</span>
+          </button>
+          <button class="language-option" type="button" role="option" aria-selected="false" data-lang="ru">
+            <img class="language-flag" src="assets/flag-ru.svg" alt="" />
+            <span>Русский</span>
+            <span class="language-option-code">RU</span>
+          </button>
+          <button class="language-option" type="button" role="option" aria-selected="false" data-lang="ar">
+            <img class="language-flag" src="assets/flag-ar.svg" alt="" />
+            <span>العربية</span>
+            <span class="language-option-code">AR</span>
+          </button>
+        </div>
+      </div>
     </header>
 
     <main>

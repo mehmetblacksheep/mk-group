@@ -58,12 +58,95 @@ button, select { font: inherit; }
 }
 h1 { margin: 0 0 4px; font-size: 30px; letter-spacing: 0; }
 .subtitle { margin: 0; color: var(--primary); font-weight: 700; }
-.lang-select {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 14px;
+.language-switcher {
+  position: relative;
+  flex: 0 0 auto;
+}
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 8px 12px 8px 10px;
+  border: 1px solid rgba(15, 118, 110, .32);
+  border-radius: 14px;
   background: #fff;
   color: var(--text);
+  box-shadow: 0 12px 26px rgba(15, 118, 110, .13);
+  cursor: pointer;
+}
+.language-toggle:hover,
+.language-toggle:focus-visible {
+  border-color: rgba(15, 118, 110, .62);
+  outline: none;
+  box-shadow: 0 14px 30px rgba(15, 118, 110, .2);
+}
+.language-flag {
+  display: block;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 24px;
+  border-radius: 5px;
+  background: #f6f3ee;
+  border: 1px solid rgba(230, 225, 216, .9);
+  object-fit: cover;
+}
+.language-current {
+  display: grid;
+  gap: 2px;
+  min-width: 78px;
+  text-align: left;
+}
+.language-label {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.language-code,
+.language-option-code {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+.language-arrow {
+  color: var(--muted);
+  font-size: 13px;
+}
+.language-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 4px;
+  width: 224px;
+  padding: 8px;
+  border: 1px solid rgba(230, 225, 216, .95);
+  border-radius: 14px;
+  background: rgba(255,255,255,.98);
+  box-shadow: var(--shadow-strong);
+}
+.language-option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+.language-option:hover,
+.language-option:focus-visible,
+.language-option[aria-selected="true"] {
+  background: #eef8f7;
+  outline: none;
 }
 .category-grid {
   display: grid;
@@ -613,6 +696,22 @@ body.modal-open .whatsapp-float {
   .brand-wrap {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .language-switcher,
+  .language-toggle,
+  .language-menu {
+    width: 100%;
+  }
+
+  .language-menu {
+    right: auto;
+    left: 0;
+  }
+
+  .language-current {
+    min-width: 0;
+    flex: 1;
   }
 
   .item-card {

@@ -12,6 +12,14 @@ const BRAND_SUBTITLE = 'Local Services';
 const LANG_STORAGE_KEY = 'mk_group_selected_language';
 const HISTORY_STATE_KEY = 'mk_group_history_state';
 
+const languageMeta = {
+  tr: { label: 'Türkçe', code: 'TR', flag: 'assets/flag-tr.svg' },
+  en: { label: 'English', code: 'EN', flag: 'assets/flag-en.svg' },
+  de: { label: 'Deutsch', code: 'DE', flag: 'assets/flag-de.svg' },
+  ru: { label: 'Русский', code: 'RU', flag: 'assets/flag-ru.svg' },
+  ar: { label: 'العربية', code: 'AR', flag: 'assets/flag-ar.svg' }
+};
+
 const translations = {
   tr: {
     subtitle: 'Hizmet seçin',
@@ -238,7 +246,12 @@ const itemList = document.getElementById('itemList');
 const activeCategoryTitle = document.getElementById('activeCategoryTitle');
 const activeCategoryDescription = document.getElementById('activeCategoryDescription');
 const backToCategories = document.getElementById('backToCategories');
-const langSelect = document.getElementById('langSelect');
+const languageSwitcher = document.getElementById('languageSwitcher');
+const languageToggle = document.getElementById('languageToggle');
+const languageMenu = document.getElementById('languageMenu');
+const languageFlag = document.getElementById('languageFlag');
+const languageLabel = document.getElementById('languageLabel');
+const languageCode = document.getElementById('languageCode');
 
 const detailModal = document.getElementById('detailModal');
 const closeModal = document.getElementById('closeModal');
@@ -461,7 +474,29 @@ function applyBrandName() {
   }
 }
 
+function setLanguageMenuOpen(isOpen) {
+  languageMenu.classList.toggle('hidden', !isOpen);
+  languageToggle.setAttribute('aria-expanded', String(isOpen));
+}
+
+function closeLanguageMenu() {
+  setLanguageMenuOpen(false);
+}
+
+function updateLanguageSwitcher(lang) {
+  const meta = languageMeta[lang] || languageMeta.tr;
+  languageFlag.src = meta.flag;
+  languageLabel.textContent = meta.label;
+  languageCode.textContent = meta.code;
+
+  document.querySelectorAll('.language-option').forEach((option) => {
+    option.setAttribute('aria-selected', String(option.dataset.lang === lang));
+  });
+}
+
 function setLanguage(lang) {
+  if (!translations[lang]) lang = 'tr';
+
   state.lang = lang;
   try {
     localStorage.setItem(LANG_STORAGE_KEY, lang);
@@ -473,6 +508,7 @@ function setLanguage(lang) {
 
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  updateLanguageSwitcher(lang);
 
   updateScreenSubtitle();
   document.getElementById('labelTour').textContent = t.tour;
@@ -796,7 +832,58 @@ backToCategories.addEventListener('click', () => {
   showHomeView();
 });
 
-langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+languageToggle.addEventListener('click', (e) => {
+  e.stopPropagation();
+  setLanguageMenuOpen(languageMenu.classList.contains('hidden'));
+});
+
+languageToggle.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowDown') return;
+
+  e.preventDefault();
+  setLanguageMenuOpen(true);
+
+  const selectedOption = languageMenu.querySelector('[aria-selected="true"]');
+  const firstOption = languageMenu.querySelector('.language-option');
+  (selectedOption || firstOption)?.focus();
+});
+
+languageMenu.addEventListener('click', (e) => {
+  const option = e.target.closest?.('.language-option');
+  if (!option) return;
+
+  setLanguage(option.dataset.lang);
+  closeLanguageMenu();
+  languageToggle.focus();
+});
+
+languageMenu.addEventListener('keydown', (e) => {
+  const options = [...languageMenu.querySelectorAll('.language-option')];
+  const currentIndex = options.indexOf(document.activeElement);
+
+  if (e.key === 'Escape') {
+    closeLanguageMenu();
+    languageToggle.focus();
+    return;
+  }
+
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+
+  e.preventDefault();
+  const direction = e.key === 'ArrowDown' ? 1 : -1;
+  const nextIndex = currentIndex < 0
+    ? 0
+    : (currentIndex + direction + options.length) % options.length;
+  options[nextIndex]?.focus();
+});
+
+document.addEventListener('click', (e) => {
+  if (!languageSwitcher.contains(e.target)) closeLanguageMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeLanguageMenu();
+});
 
 closeModal.addEventListener('click', closeModalFn);
 
@@ -857,7 +944,6 @@ async function init() {
   }
 
   if (!translations[savedLang]) savedLang = 'tr';
-  langSelect.value = savedLang;
   setLanguage(savedLang);
   await syncUiWithHistory(window.history.state);
 }
