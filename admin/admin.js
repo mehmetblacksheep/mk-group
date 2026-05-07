@@ -155,7 +155,7 @@ const state = {
 }
 
 function categoryLabel(category) {
-  return ({ tour: 'Tur', transfer: 'Transfer', market: 'Market' })[category] || category
+  return ({ tour: 'Tur', transfer: 'Transfer & Rent-a-car', market: 'Market&Food' })[category] || category
 }
 
 function escapeHtml(value = '') {
